@@ -4,15 +4,21 @@ https://betterconfig.com
 ## Getting Started
 
  1. Install [NuGet](http://docs.nuget.org/docs/start-here/using-the-package-manager-console) package: [BetterConfigClient](https://www.nuget.org/packages/BetterConfigClient)
- `Install-Package BetterConfigClient`
- 2. Get your Project connection url from BetterConfig.com portal:
+ ```PowerShell
+ Install-Package BetterConfigClient
+ ```
+ 2. Get your Project connection url from [BetterConfig.com](BetterConfig.com) portal:
 ![YourConnectionUrl](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme01sml.png  "YourConnectionUrl")
 
- 3. Create an instance from BetterConfigClient:
- `var betterConfigClient = new BetterConfigClient("#YOUR-CONNECTION-URL#");`
+ 3. Create a **BetterConfigClient** instance:
+```c#
+var betterConfigClient = new BetterConfigClient("#YOUR-CONNECTION-URL#");
+```
  4. Get your config value:
-`var myStringValue = betterConfigClient.GetValue("myStringKey", String.Empty);`
-`Console.WriteLine("My String value from BC: {0}", myStringValue);`
+```c#
+var myStringValue = betterConfigClient.GetValue("myStringKey", String.Empty);
+Console.WriteLine("My String value from BC: {0}", myStringValue);
+```
 
 ## License
 [MIT](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/LICENSE)
