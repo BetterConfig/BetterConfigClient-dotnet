@@ -20,16 +20,5 @@ namespace BetterConfig
 
             this.HttpETag = httpETag;
         }
-
-        internal Config ShallowCopy()
-        {
-            var result = (Config)this.MemberwiseClone();
-
-            result.JsonString = this.JsonString;
-
-            result.HttpETag = this.HttpETag;
-
-            return result;
-        }
     }
 }

@@ -7,6 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace BetterConfig
 {
+    /// <summary>
+    /// Client for BetterConfig platform
+    /// </summary>
     public class BetterConfigClient : IBetterConfigClient, IDisposable
     {
         private TimeSpan timeToLive;
@@ -29,8 +32,8 @@ namespace BetterConfig
         /// <param name="url">Url to access configuration</param>
         /// <exception cref="ArgumentException">When the <paramref name="url"/> is null or empty</exception>        
         /// <exception cref="UriFormatException">When the <paramref name="url"/> is invalid</exception>
-        public BetterConfigClient(string url) : this(new BetterConfigClientConfiguration { Url = url})
-        {            
+        public BetterConfigClient(string url) : this(new BetterConfigClientConfiguration { Url = url })
+        {
         }
 
         /// <summary>
@@ -59,8 +62,12 @@ namespace BetterConfig
             this.configuration = configuration;
 
             this.EnsureHttpClient();
-        }        
-        
+        }
+
+        /// <summary>
+        /// Return configuration as a json string
+        /// </summary>
+        /// <returns>All configuration in json string</returns>
         public string GetConfigurationJsonString()
         {
             var c = this.GetCacheItemAsync().Result;
@@ -68,13 +75,24 @@ namespace BetterConfig
             return c.JsonString;
         }
 
+        /// <summary>
+        /// Return configuration as a json string
+        /// </summary>
+        /// <returns>All configuration in json string</returns>
         public async Task<string> GetConfigurationJsonStringAsync()
         {
             var c = await this.GetCacheItemAsync();
 
             return c.JsonString;
         }
-        
+
+        /// <summary>
+        /// Return a value of the key (Key for programs)
+        /// </summary>
+        /// <typeparam name="T">Setting type</typeparam>
+        /// <param name="key">Key for programs</param>
+        /// <param name="defaultValue">In case of failure return this value</param>
+        /// <returns></returns>
         public T GetValue<T>(string key, T defaultValue)
         {
             try
@@ -90,7 +108,14 @@ namespace BetterConfig
                 return defaultValue;
             }
         }
-
+        
+        /// <summary>
+        /// Return a value of the key (Key for programs)
+        /// </summary>
+        /// <typeparam name="T">Setting type</typeparam>
+        /// <param name="key">Key for programs</param>
+        /// <param name="defaultValue">In case of failure return this value</param>
+        /// <returns></returns>
         public async Task<T> GetValueAsync<T>(string key, T defaultValue)
         {
             try
@@ -108,6 +133,13 @@ namespace BetterConfig
             
         }
 
+        /// <summary>
+        /// Serialize the configuration to a passed <typeparamref name="T"/> type.  
+        /// You can customize your T with Newtonsoft attributes
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="defaultValue">In case of failure return this value</param>
+        /// <returns></returns>
         public T GetConfiguration<T>(T defaultValue)
         {
             try
@@ -124,6 +156,13 @@ namespace BetterConfig
             }           
         }
 
+        /// <summary>
+        /// Serialize the configuration to a passed <typeparamref name="T"/> type.        
+        /// You can customize your T with Newtonsoft attributes
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="defaultValue">In case of failure return this value</param>
+        /// <returns></returns>
         public async Task<T> GetConfigurationAsync<T>(T defaultValue)
         {
             try
@@ -249,7 +288,7 @@ namespace BetterConfig
 
                         this.httpClient.Timeout = TimeSpan.FromSeconds(30);
 
-                        this.httpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("BetterConfigClient-Dotnet", "1.0"));
+                        this.httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("BetterConfigClient-Dotnet", "1.0"));
                     }
                 }
             }

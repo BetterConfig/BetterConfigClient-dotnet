@@ -4,17 +4,28 @@ using System.Net.Http;
 
 namespace BetterConfig
 {
+    /// <summary>
+    /// Configuration settings object for <see cref="BetterConfigClient">BetterConfigClient</see>
+    /// </summary>
     public sealed class BetterConfigClientConfiguration
-    {
-        /// <summary>
-        /// Access url to configuration
-        /// </summary>
-        public string Url { get; set; }
+    {        
+        internal string Url { get; set; }
 
         /// <summary>
         /// Poll interval in seconds        
         /// </summary>
         public ushort TimeToLiveSeconds { get; set; } = 2;
+
+        /// <summary>
+        /// Project token
+        /// </summary>
+        public string ProjectToken
+        {
+            set
+            {
+                this.Url = CreateUrl(value);
+            }            
+        }
 
         internal ILogger Logger { get; set; }
 
@@ -22,9 +33,14 @@ namespace BetterConfig
 
         private static readonly LoggerFactory loggerFactory = new LoggerFactory();
 
+        private static string CreateUrl(string projectToken)
+        {
+            return "https://cdn.betterconfig.com/configuration-files/" + projectToken + "/config.json";
+        }
+
         internal void Validate()
         {
-            if (string.IsNullOrWhiteSpace(Url))
+            if (string.IsNullOrWhiteSpace(this.Url))
             {
                 throw new ArgumentNullException("Invalid url value", nameof(this.Url));
             }

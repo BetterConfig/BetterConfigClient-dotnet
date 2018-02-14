@@ -10,7 +10,7 @@ namespace BetterConfigClientTests
     {
         [ExpectedException(typeof(ArgumentNullException))]
         [TestMethod]
-        public void CreateAnInstanceWhenUrlIsNullShouldThrowArgumentException()
+        public void CreateAnInstanceWhenUrlIsNullShouldThrowArgumentNullException()
         {
             string url = null;
 
@@ -20,11 +20,21 @@ namespace BetterConfigClientTests
 
         [ExpectedException(typeof(ArgumentNullException))]
         [TestMethod]
-        public void CreateAnInstanceWhenConfigurationIsNullShouldThrowArgumentException()
+        public void CreateAnInstanceWhenUrlIsEmptyStringShouldThrowArgumentNullException()
+        {
+            string url = string.Empty;
+
+            new BetterConfigClient(url);
+
+        }
+
+        [ExpectedException(typeof(ArgumentNullException))]
+        [TestMethod]
+        public void CreateAnInstanceWhenConfigurationIsNullShouldThrowArgumentNullException()
         {
             BetterConfigClientConfiguration url = null;
 
             new BetterConfigClient(url);
-        }
+        }        
     }
 }
