@@ -9,7 +9,7 @@ https://betterconfig.com
  ```PowerShell
  Install-Package BetterConfigClient
  ```
- 2. Get your Project connection url from [BetterConfig.com](BetterConfig.com) portal:
+ 2. Get your Project connection url from [BetterConfig.com](https://betterconfig.com) portal:
 ![YourConnectionUrl](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme01sml.png  "YourConnectionUrl")
 
  3. Create a **BetterConfigClient** instance:
