@@ -21,7 +21,11 @@ namespace WebApplication
         {
             services.AddMvc();
 
-            services.AddSingleton<IBetterConfigClient>(new BetterConfigClient(Configuration["BetterConfigProjectToken"]));
+            services.AddSingleton<IBetterConfigClient>(new BetterConfigClient(new BetterConfigClientConfiguration
+            {
+                ProjectToken = Configuration["BetterConfigProjectToken"],
+                TimeToLiveSeconds = 120
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

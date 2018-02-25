@@ -12,7 +12,7 @@ namespace BetterConfig
         private string projectToken;
 
         /// <summary>
-        /// Poll interval in seconds        
+        /// Cache time to live value in seconds        
         /// </summary>
         public ushort TimeToLiveSeconds { get; set; } = 2;
 

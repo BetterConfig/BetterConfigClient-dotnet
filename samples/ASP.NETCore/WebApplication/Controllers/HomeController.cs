@@ -24,7 +24,7 @@ namespace WebApplication.Controllers
 
         public IActionResult About()
         {
-            ViewData["Message"] = this.betterConfigClient.GetValue("keySampleText", "Your application description page.");
+            ViewData["Message"] = this.betterConfigClient.GetValue("keySampleText", "Your application description page.");            
 
             return View();
         }
