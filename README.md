@@ -24,12 +24,14 @@ Console.WriteLine("My String value from BC: {0}", myStringValue);
 ## Configuration
 You can configure the client with ```BetterConfigConfiguration``` object.
 Configuration parameters are the followings:
+
 | PropertyName        | Description           | Default  | Required |
 | --- | --- | --- | --- |
 | ```ProjectToken```      | Project token to access your configuration  | - | YES |
 | ```TimeToLiveSeconds```      | Cache time to live in seconds      |   2 | - |
 | ```TraceFactory``` | Factory method to create an ```ITraceWriter``` instance for tracing.        | ```NullTrace``` (no default tracing method) | - |
 | ```TraceLevel```      | Specifies message filtering to output for the ```ITraceWriter```. Values: *Off*, *Error*, *Warn*, *Info*, *Verbose*      |   ```Error``` | - |
+
 ### Example
 Increase TimeToLiveSeconds to 60 seconds
 ``` c#
