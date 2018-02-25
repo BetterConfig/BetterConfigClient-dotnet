@@ -2,6 +2,9 @@
 
 namespace BetterConfig
 {
+    /// <summary>
+    /// Provides configuration properties for <c>BetterConfigClient</c>
+    /// </summary>
     public interface IBetterConfigClient
     {
         /// <summary>
@@ -51,5 +54,10 @@ namespace BetterConfig
         /// <param name="defaultValue">In case of failure return this value</param>
         /// <returns></returns>
         Task<T> GetValueAsync<T>(string key, T defaultValue);
+
+        /// <summary>
+        /// Remove all items from cache
+        /// </summary>
+        void ClearCache();
     }
 }

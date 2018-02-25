@@ -8,33 +8,101 @@ namespace BetterConfigClientTests
     [TestClass]
     public class BetterConfigClientTests
     {
-        [ExpectedException(typeof(ArgumentNullException))]
+        [ExpectedException(typeof(ArgumentException))]
         [TestMethod]
-        public void CreateAnInstanceWhenUrlIsNullShouldThrowArgumentNullException()
+        public void CreateAnInstance_WhenProjectTokenIsEmpty_ShouldThrowArgumentNullException()
         {
-            string url = null;
+            string projectToken = string.Empty;
 
-            new BetterConfigClient(url);
-
+            new BetterConfigClient(projectToken);
         }
 
-        [ExpectedException(typeof(ArgumentNullException))]
+        [ExpectedException(typeof(ArgumentException))]
         [TestMethod]
-        public void CreateAnInstanceWhenUrlIsEmptyStringShouldThrowArgumentNullException()
+        public void CreateAnInstance_WhenProjectTokenIsNull_ShouldThrowArgumentNullException()
         {
-            string url = string.Empty;
+            string projectToken = null;
 
-            new BetterConfigClient(url);
-
+            new BetterConfigClient(projectToken);
         }
 
-        [ExpectedException(typeof(ArgumentNullException))]
+        [ExpectedException(typeof(ArgumentException))]
         [TestMethod]
-        public void CreateAnInstanceWhenConfigurationIsNullShouldThrowArgumentNullException()
+        public void CreateAnInstance_WhenConfigurationProjectTokenIsNull_ShouldThrowArgumentNullException()
         {
-            BetterConfigClientConfiguration url = null;
+            var clientConfiguration = new BetterConfigClientConfiguration
+            {
+                ProjectToken = null
+            };
 
-            new BetterConfigClient(url);
+            new BetterConfigClient(clientConfiguration);
+        }
+
+        [ExpectedException(typeof(ArgumentException))]
+        [TestMethod]
+        public void CreateAnInstance_WhenConfigurationProjectTokenIsEmpty_ShouldThrowArgumentNullException()
+        {
+            var clientConfiguration = new BetterConfigClientConfiguration
+            {
+                ProjectToken = string.Empty
+            };
+
+            new BetterConfigClient(clientConfiguration);
+        }
+
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        [TestMethod]
+        public void CreateAnInstance_WhenConfigurationTimeToLiveSecondsIsZero_ShouldThrowArgumentOutOfRangeException()
+        {
+            var clientConfiguration = new BetterConfigClientConfiguration
+            {
+                ProjectToken = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf",
+                TimeToLiveSeconds = 0
+            };
+
+            new BetterConfigClient(clientConfiguration);
         }        
+
+        [ExpectedException(typeof(ArgumentNullException))]
+        [TestMethod]
+        public void CreateAnInstance_WhenTraceFactoryIsNull_ShouldThrowArgumentNullException()
+        {
+            var clientConfiguration = new BetterConfigClientConfiguration
+            {
+                ProjectToken = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf",
+                TraceFactory = null
+            };
+
+            new BetterConfigClient(clientConfiguration);
+
+        }
+
+        [ExpectedException(typeof(ArgumentNullException))]
+        [TestMethod]
+        public void CreateAnInstance_WhenConfigurationIsNull_ShouldThrowArgumentNullException()
+        {
+            BetterConfigClientConfiguration config = null;
+
+            new BetterConfigClient(config);
+        }
+        
+        [TestMethod]
+        public void CreateAnInstance_WithValidConfiguration_ShouldCreateAnInstance()
+        {
+            BetterConfigClientConfiguration config = new BetterConfigClientConfiguration
+            {
+                ProjectToken = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf"
+            };
+
+            new BetterConfigClient(config);
+        }
+
+        [TestMethod]
+        public void CreateAnInstance_WithProjectToken_ShouldCreateAnInstance()
+        {
+            string projectToken = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf";
+
+            new BetterConfigClient(projectToken);
+        }
     }
 }

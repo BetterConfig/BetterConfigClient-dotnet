@@ -1,9 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
-using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using BetterConfig.Trace;
+using System.Reflection;
 
 namespace BetterConfig
 {
@@ -22,17 +23,16 @@ namespace BetterConfig
 
         private readonly object lck = new object();
 
-        private readonly ILogger logger;
-
         private readonly BetterConfigClientConfiguration configuration;
+
+        private readonly ITraceWriter traceWriter;
 
         /// <summary>
         /// Create an instance of BetterConfigClient
         /// </summary>
-        /// <param name="url">Url to access configuration</param>
-        /// <exception cref="ArgumentException">When the <paramref name="url"/> is null or empty</exception>        
-        /// <exception cref="UriFormatException">When the <paramref name="url"/> is invalid</exception>
-        public BetterConfigClient(string url) : this(new BetterConfigClientConfiguration { Url = url })
+        /// <param name="projectToken">ProjectToken to access configuration</param>
+        /// <exception cref="ArgumentException">When the <paramref name="projectToken"/> is null or empty</exception>                
+        public BetterConfigClient(string projectToken) : this(new BetterConfigClientConfiguration { ProjectToken = projectToken })
         {
         }
 
@@ -42,8 +42,7 @@ namespace BetterConfig
         /// <param name="configuration">BetterConfigClient configuration</param>
         /// <exception cref="ArgumentException">When the configuration contains any invalid property</exception>
         /// <exception cref="ArgumentNullException">When the configuration is null</exception>        
-        /// <exception cref="ArgumentOutOfRangeException">When TimeToLive value is not in a proper range</exception>
-        /// <exception cref="UriFormatException">When the Url is invalid</exception>
+        /// <exception cref="ArgumentOutOfRangeException">When TimeToLive value is not in a proper range</exception>        
         public BetterConfigClient(BetterConfigClientConfiguration configuration)
         {
             if (configuration == null)
@@ -53,11 +52,11 @@ namespace BetterConfig
 
             configuration.Validate();            
 
-            this.url = new Uri(configuration.Url);
+            this.url = configuration.Url;
 
-            this.timeToLive = TimeSpan.FromSeconds(configuration.TimeToLiveSeconds);
+            this.timeToLive = TimeSpan.FromSeconds(configuration.TimeToLiveSeconds);            
 
-            this.logger = configuration.Logger;
+            this.traceWriter = configuration.TraceFactory();
 
             this.configuration = configuration;
 
@@ -103,7 +102,7 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.logger.LogError($"Error occured in 'GetValue' method.\n{0}", ex.ToString());               
+                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'GetValue' method.\n{ex.ToString()}");                
                 
                 return defaultValue;
             }
@@ -126,7 +125,7 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.logger.LogError($"Error occured in 'GetValueAsync' method.\n{0}", ex.ToString());
+                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'GetValueAsync' method.\n{ex.ToString()}");
 
                 return defaultValue;
             }
@@ -150,8 +149,8 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.logger.LogError($"Error occured in 'GetConfiguration' method.\n{0}", ex.ToString());
-
+                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'GetConfiguration' method.\n{ex.ToString()}");
+                
                 return defaultValue;
             }           
         }
@@ -173,13 +172,23 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.logger.LogError($"Error occured in 'GetConfigurationAsync' method.\n{0}", ex.ToString());
+                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'GetConfigurationAsync' method.\n{ex.ToString()}");
 
                 return defaultValue;
             }
         }
-        
+
+        /// <summary>
+        /// Remove all items from cache
+        /// </summary>
+        public void ClearCache()
+        {
+            this.ConfigStore.Clear();
+        }
+
+#pragma warning disable CS1591
         public void Dispose()
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             if (this.httpClient != null) this.httpClient.Dispose();
         }
@@ -221,8 +230,8 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.logger.LogError($"Error occured in 'UpdateAsync' method.\n{0}", ex.ToString());
-                
+                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'UpdateAsync' method.\n{ex.ToString()}");
+
                 this.EnsureHttpClient(true);
             }          
 
@@ -247,7 +256,7 @@ namespace BetterConfig
         {
             if (config.JsonString == null)
             {
-                this.logger.LogWarning("ConfigJson is not present, returning defaultValue");
+                this.traceWriter.Trace(TraceLevel.Warn, "ConfigJson is not present, returning defaultValue");
 
                 return defaultValue;
             }
@@ -258,7 +267,7 @@ namespace BetterConfig
 
             if (rawValue == null)
             {
-                this.logger.LogWarning("Unknown key: '{0}'", key);
+                this.traceWriter.Trace(TraceLevel.Warn, "Unknown key: '{key}'");
 
                 return defaultValue;
             }

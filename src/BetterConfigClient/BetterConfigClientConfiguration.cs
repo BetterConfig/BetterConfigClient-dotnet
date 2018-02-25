@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Net.Http;
+using BetterConfig.Trace;
 
 namespace BetterConfig
 {
@@ -8,8 +8,8 @@ namespace BetterConfig
     /// Configuration settings object for <see cref="BetterConfigClient">BetterConfigClient</see>
     /// </summary>
     public sealed class BetterConfigClientConfiguration
-    {        
-        internal string Url { get; set; }
+    {
+        private string projectToken;
 
         /// <summary>
         /// Poll interval in seconds        
@@ -23,37 +23,53 @@ namespace BetterConfig
         {
             set
             {
+                this.projectToken = value;
+
                 this.Url = CreateUrl(value);
-            }            
+            }
+            get
+            {
+                return this.projectToken;
+            }
         }
 
-        internal ILogger Logger { get; set; }
+        /// <summary>
+        /// Factory method of <c>ITraceWriter</c>
+        /// </summary>
+        public Func<ITraceWriter> TraceFactory { get; set; } = () => new NullTrace();
 
-        internal Func<HttpClient> HttpClientFactory { get; set; } = () => new HttpClient();
+        /// <summary>
+        /// Trace level
+        /// <para />
+        /// Default value: Error
+        /// </summary>
+        public TraceLevel TraceLevel { get; set; } = TraceLevel.Error;
 
-        private static readonly LoggerFactory loggerFactory = new LoggerFactory();
+        internal Uri Url { get; private set; }
 
-        private static string CreateUrl(string projectToken)
+        internal Func<HttpClient> HttpClientFactory { get; set; } = () => new HttpClient();        
+
+        private static Uri CreateUrl(string projectToken)
         {
-            return "https://cdn.betterconfig.com/configuration-files/" + projectToken + "/config.json";
+            return new Uri("https://cdn.betterconfig.com/configuration-files/" + projectToken + "/config.json");
         }
 
         internal void Validate()
         {
-            if (string.IsNullOrWhiteSpace(this.Url))
-            {
-                throw new ArgumentNullException("Invalid url value", nameof(this.Url));
-            }
-
             if (this.TimeToLiveSeconds == 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(this.TimeToLiveSeconds), "Value must be greater than zero.");
             }
 
-            if (this.Logger == null)
+            if (string.IsNullOrEmpty(this.ProjectToken))
             {
-                this.Logger = loggerFactory.CreateLogger(typeof(BetterConfigClient));
+                throw new ArgumentException("Invalid project token value.", nameof(this.ProjectToken));
             }
+
+            if (this.TraceFactory == null)
+            {
+                throw new ArgumentNullException(nameof(this.TraceFactory));
+            }            
         }
     }
 }

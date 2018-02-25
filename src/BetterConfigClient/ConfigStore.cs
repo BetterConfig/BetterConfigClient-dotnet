@@ -35,5 +35,10 @@ namespace BetterConfig
                 this.lockSlim.ExitReadLock();
             }
         }
+
+        public void Clear()
+        {
+            this.Set(Config.Empty);
+        }
     }
 }
