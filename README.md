@@ -9,18 +9,39 @@ https://betterconfig.com
  ```PowerShell
  Install-Package BetterConfigClient
  ```
- 2. Get your Project connection url from [BetterConfig.com](https://betterconfig.com) portal:
-![YourConnectionUrl](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme01sml.png  "YourConnectionUrl")
+ 2. Get your Project token from [BetterConfig.com](https://betterconfig.com) portal:
+![YourConnectionUrl](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme01.png  "YourProjectToken")
 
  3. Create a **BetterConfigClient** instance:
 ```c#
-var betterConfigClient = new BetterConfigClient("#YOUR-CONNECTION-URL#");
+var betterConfigClient = new BetterConfigClient("#YOUR-PROJECT-TOKEN#");
 ```
  4. Get your config value:
 ```c#
 var myStringValue = betterConfigClient.GetValue("myStringKey", String.Empty);
 Console.WriteLine("My String value from BC: {0}", myStringValue);
 ```
+## Configuration
+You can configure the client with ```BetterConfigConfiguration``` object.
+Configuration parameters are the followings:
+| PropertyName        | Description           | Default  | Required |
+| --- | --- | --- | --- |
+| ```ProjectToken```      | Project token to access your configuration  | - | YES |
+| ```TimeToLiveSeconds```      | Cache time to live in seconds      |   2 | - |
+| ```TraceFactory``` | Factory method to create an ```ITraceWriter``` instance for tracing.        | ```NullTrace``` (no default tracing method) | - |
+| ```TraceLevel```      | Specifies message filtering to output for the ```ITraceWriter```. Values: *Off*, *Error*, *Warn*, *Info*, *Verbose*      |   ```Error``` | - |
+### Example
+Increase TimeToLiveSeconds to 60 seconds
+``` c#
+var clientConfiguration = new BetterConfigClientConfiguration
+{
+	ProjectToken = "#YOUR-PROJECT-TOKEN#",
+	TimeToLiveSeconds = 60
+};
+
+IBetterConfigClient betterConfigClient = new BetterConfigClient(clientConfiguration);
+```
+
 
 ## License
 [MIT](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/LICENSE)
