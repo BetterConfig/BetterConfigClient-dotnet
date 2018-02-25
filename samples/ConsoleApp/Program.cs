@@ -11,7 +11,8 @@ namespace ConsoleApp
 
             var betterConfigClient = new BetterConfigClient(new BetterConfigClientConfiguration
             {
-                ProjectToken = projectToken
+                ProjectToken = projectToken,
+                TimeToLiveSeconds = 60
             });
 
             // current project's setting key name is 'keySampleText'
