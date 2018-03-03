@@ -7,7 +7,7 @@
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>strongname.snk</AssemblyOriginatorKeyFile>    
-    <Version>0.1-alpha</Version>    
+    <Version>1.0.6-alpha</Version>    
     <Copyright>Copyright © BetterConfig 2018</Copyright>    
     <Company>BetterConfig</Company>    
     <Authors>BetterConfig</Authors>    
@@ -15,11 +15,13 @@
     <PackageProjectUrl>https://github.com/BetterConfig/BetterConfigClient-dotnet</PackageProjectUrl>    
     <RepositoryUrl>https://github.com/BetterConfig/BetterConfigClient-dotnet</RepositoryUrl>    
     <RepositoryType>git</RepositoryType>    
-    <PackageReleaseNotes>Version 1.0
- * Initial release</PackageReleaseNotes>    
+    <PackageReleaseNotes>Version 1.0.5
+     * Implement tracing, add clear cache ability to client
+     Version 1.0.4
+     * Initial release</PackageReleaseNotes>    
     <PackageTags>betterconfig config configuration remoteconfiguration betterconfigclient</PackageTags>    
     <Description>BetterConfig integrates with your products to allow you to create and configure apps, backends, websites and other programs using an easy to follow online User Interface (UI).</Description>    
-    <PackageIconUrl>https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/icon.png</PackageIconUrl>    
+    <PackageIconUrl>https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/icon-64x64.png</PackageIconUrl>    
     <AssemblyVersion>0.1.0.0</AssemblyVersion>    
     <FileVersion>0.1.0.0</FileVersion>    
     <NeutralLanguage></NeutralLanguage>

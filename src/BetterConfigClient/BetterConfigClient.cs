@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using BetterConfig.Trace;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace BetterConfig
 {
@@ -25,14 +26,16 @@ namespace BetterConfig
 
         private readonly BetterConfigClientConfiguration configuration;
 
-        private readonly ITraceWriter traceWriter;
+        private readonly ILogger log;
+
+        private static string Version = typeof(BetterConfigClient).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
 
         /// <summary>
         /// Create an instance of BetterConfigClient
         /// </summary>
-        /// <param name="projectToken">ProjectToken to access configuration</param>
-        /// <exception cref="ArgumentException">When the <paramref name="projectToken"/> is null or empty</exception>                
-        public BetterConfigClient(string projectToken) : this(new BetterConfigClientConfiguration { ProjectToken = projectToken })
+        /// <param name="projectSecret">Project secret to access configuration</param>
+        /// <exception cref="ArgumentException">When the <paramref name="projectSecret"/> is null or empty</exception>                
+        public BetterConfigClient(string projectSecret) : this(new BetterConfigClientConfiguration { ProjectSecret = projectSecret })
         {
         }
 
@@ -54,12 +57,12 @@ namespace BetterConfig
 
             this.url = configuration.Url;
 
-            this.timeToLive = TimeSpan.FromSeconds(configuration.TimeToLiveSeconds);            
+            this.timeToLive = TimeSpan.FromSeconds(configuration.TimeToLiveSeconds);
 
-            this.traceWriter = configuration.TraceFactory();
+            this.log = configuration.LoggerFactory.GetLogger(typeof(BetterConfigClient).Name);
 
             this.configuration = configuration;
-
+        
             this.EnsureHttpClient();
         }
 
@@ -102,7 +105,7 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'GetValue' method.\n{ex.ToString()}");                
+                this.log.Error($"Error occured in 'GetValue' method.\n{ex.ToString()}");                
                 
                 return defaultValue;
             }
@@ -125,7 +128,7 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'GetValueAsync' method.\n{ex.ToString()}");
+                this.log.Error($"Error occured in 'GetValueAsync' method.\n{ex.ToString()}");
 
                 return defaultValue;
             }
@@ -149,7 +152,7 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'GetConfiguration' method.\n{ex.ToString()}");
+                this.log.Error($"Error occured in 'GetConfiguration' method.\n{ex.ToString()}");
                 
                 return defaultValue;
             }           
@@ -172,7 +175,7 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'GetConfigurationAsync' method.\n{ex.ToString()}");
+                this.log.Error($"Error occured in 'GetConfigurationAsync' method.\n{ex.ToString()}");
 
                 return defaultValue;
             }
@@ -230,7 +233,7 @@ namespace BetterConfig
             }
             catch (Exception ex)
             {
-                this.traceWriter.Trace(TraceLevel.Error, $"Error occured in 'UpdateAsync' method.\n{ex.ToString()}");
+                this.log.Error($"Error occured in 'UpdateAsync' method.\n{ex.ToString()}");
 
                 this.EnsureHttpClient(true);
             }          
@@ -256,7 +259,7 @@ namespace BetterConfig
         {
             if (config.JsonString == null)
             {
-                this.traceWriter.Trace(TraceLevel.Warn, "ConfigJson is not present, returning defaultValue");
+                this.log.Warning("ConfigJson is not present, returning defaultValue");
 
                 return defaultValue;
             }
@@ -267,7 +270,7 @@ namespace BetterConfig
 
             if (rawValue == null)
             {
-                this.traceWriter.Trace(TraceLevel.Warn, "Unknown key: '{key}'");
+                this.log.Warning($"Unknown key: '{key}'");
 
                 return defaultValue;
             }
@@ -297,7 +300,7 @@ namespace BetterConfig
 
                         this.httpClient.Timeout = TimeSpan.FromSeconds(30);
 
-                        this.httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("BetterConfigClient-Dotnet", "1.0"));
+                        this.httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("BetterConfigClient-Dotnet", Version));
                     }
                 }
             }

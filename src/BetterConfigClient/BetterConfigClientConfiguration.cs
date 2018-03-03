@@ -9,7 +9,7 @@ namespace BetterConfig
     /// </summary>
     public sealed class BetterConfigClientConfiguration
     {
-        private string projectToken;
+        private string projectSecret;
 
         /// <summary>
         /// Cache time to live value in seconds        
@@ -19,31 +19,24 @@ namespace BetterConfig
         /// <summary>
         /// Project token
         /// </summary>
-        public string ProjectToken
+        public string ProjectSecret
         {
             set
             {
-                this.projectToken = value;
+                this.projectSecret = value;
 
                 this.Url = CreateUrl(value);
             }
             get
             {
-                return this.projectToken;
+                return this.projectSecret;
             }
         }
 
         /// <summary>
-        /// Factory method of <c>ITraceWriter</c>
+        /// Factory method of <c>ILogger</c>
         /// </summary>
-        public Func<ITraceWriter> TraceFactory { get; set; } = () => new NullTrace();
-
-        /// <summary>
-        /// Trace level
-        /// <para />
-        /// Default value: Error
-        /// </summary>
-        public TraceLevel TraceLevel { get; set; } = TraceLevel.Error;
+        public ILoggerFactory LoggerFactory { get; set; } = new NullLoggerFactory();        
 
         internal Uri Url { get; private set; }
 
@@ -61,15 +54,15 @@ namespace BetterConfig
                 throw new ArgumentOutOfRangeException(nameof(this.TimeToLiveSeconds), "Value must be greater than zero.");
             }
 
-            if (string.IsNullOrEmpty(this.ProjectToken))
+            if (string.IsNullOrEmpty(this.ProjectSecret))
             {
-                throw new ArgumentException("Invalid project token value.", nameof(this.ProjectToken));
+                throw new ArgumentException("Invalid project secret value.", nameof(this.ProjectSecret));
             }
 
-            if (this.TraceFactory == null)
+            if (this.LoggerFactory == null)
             {
-                throw new ArgumentNullException(nameof(this.TraceFactory));
-            }            
+                throw new ArgumentNullException(nameof(this.LoggerFactory));
+            }
         }
     }
 }
