@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BetterConfig.Trace
+namespace BetterConfig.Logging
 {
     /// <summary>
     /// Write log messages into <see cref="Console"/>

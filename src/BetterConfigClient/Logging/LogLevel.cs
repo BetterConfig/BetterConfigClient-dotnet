@@ -1,4 +1,4 @@
-﻿namespace BetterConfig.Trace
+﻿namespace BetterConfig.Logging
 {
     /// <summary>
     /// Specifies message's filtering to output for the <see cref="ILogger"/> class.

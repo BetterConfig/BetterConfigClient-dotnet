@@ -1,6 +1,6 @@
-﻿using System;
+﻿using BetterConfig.Logging;
+using System;
 using System.Net.Http;
-using BetterConfig.Trace;
 
 namespace BetterConfig
 {

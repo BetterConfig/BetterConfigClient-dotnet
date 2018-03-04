@@ -1,4 +1,4 @@
-﻿namespace BetterConfig.Trace
+﻿namespace BetterConfig.Logging
 {
     /// <summary>
     /// Logger factory class for <see cref="ConsoleLogger"/>

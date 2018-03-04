@@ -1,4 +1,4 @@
-﻿namespace BetterConfig.Trace
+﻿namespace BetterConfig.Logging
 {
     /// <summary>
     /// Provides logger factory interface

@@ -3,9 +3,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
-using BetterConfig.Trace;
 using System.Reflection;
-using System.Diagnostics;
+using BetterConfig.Logging;
 
 namespace BetterConfig
 {

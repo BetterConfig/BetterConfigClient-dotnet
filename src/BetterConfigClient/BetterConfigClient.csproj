@@ -7,7 +7,7 @@
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>strongname.snk</AssemblyOriginatorKeyFile>    
-    <Version>1.0.6-alpha</Version>    
+    <Version>1.0.6</Version>    
     <Copyright>Copyright © BetterConfig 2018</Copyright>    
     <Company>BetterConfig</Company>    
     <Authors>BetterConfig</Authors>    
@@ -17,7 +17,7 @@
     <RepositoryType>git</RepositoryType>    
     <PackageReleaseNotes>Version 1.0.5
      * Implement tracing, add clear cache ability to client
-     Version 1.0.4
+    Version 1.0.4
      * Initial release</PackageReleaseNotes>    
     <PackageTags>betterconfig config configuration remoteconfiguration betterconfigclient</PackageTags>    
     <Description>BetterConfig integrates with your products to allow you to create and configure apps, backends, websites and other programs using an easy to follow online User Interface (UI).</Description>    

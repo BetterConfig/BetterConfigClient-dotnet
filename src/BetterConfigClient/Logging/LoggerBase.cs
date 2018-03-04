@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace BetterConfig.Trace
+namespace BetterConfig.Logging
 {
     /// <summary>
     /// Provides the abstract base class for the Logger

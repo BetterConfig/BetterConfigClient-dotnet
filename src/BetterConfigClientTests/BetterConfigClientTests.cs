@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BetterConfig;
-using BetterConfig.Trace;
 
 namespace BetterConfigClientTests
 {
@@ -104,21 +103,6 @@ namespace BetterConfigClientTests
             string projectSecret = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf";
 
             new BetterConfigClient(projectSecret);
-        }
-
-        [TestMethod]
-        public void MyTestMethod()
-        {
-            string ps = "__rlPVCCuDMlXYrZsu5t36FQ/rlPVCJqKY-__aZpoP7PCLA";
-
-            var bc = new BetterConfigClient(new BetterConfigClientConfiguration
-            {
-                ProjectSecret = ps,
-                LoggerFactory = new ConsoleLoggerFactory()
-            });
-
-            Console.WriteLine(bc.GetValue("keyDouble", 1d));
-            Console.WriteLine(bc.GetValue("keyDouble2", 1d));
         }
     }
 }
