@@ -10,17 +10,21 @@ https://betterconfig.com
  ```PowerShell
  Install-Package BetterConfigClient
  ```
- 2. Get your Project token from [BetterConfig.com](https://betterconfig.com) portal:
-![YourConnectionUrl](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme01.png  "YourProjectToken")
+ 2. Get your Project secret from [BetterConfig.com](https://betterconfig.com) portal:
+![ProjectSecret](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme01.png  "ProjectSecret")
 
  3. Create a **BetterConfigClient** instance:
 ```c#
-var betterConfigClient = new BetterConfigClient("#YOUR-PROJECT-TOKEN#");
+var betterConfigClient = new BetterConfigClient("#YOUR-PROJECT-SECRET#");
 ```
  4. Get your config value:
 ```c#
-var myStringValue = betterConfigClient.GetValue("myStringKey", String.Empty);
-Console.WriteLine("My String value from BC: {0}", myStringValue);
+var isMyAwesomeFeatureEnabled = betterConfigClient.GetValue("isMyAwesomeFeatureEnabled", false);
+
+if(isMyAwesomeFeatureEnabled)
+{
+    //show your awesome feature to the world!
+}
 ```
 ## Configuration
 You can configure the client with ```BetterConfigConfiguration``` object.
@@ -28,17 +32,16 @@ Configuration parameters are the followings:
 
 | PropertyName        | Description           | Default  | Required |
 | --- | --- | --- | --- |
-| ```ProjectToken```      | Project token to access your configuration  | - | YES |
+| ```ProjectSecret```      | Project secret to access your configuration  | - | YES |
 | ```TimeToLiveSeconds```      | Cache time to live in seconds      |   2 | - |
-| ```TraceFactory``` | Factory method to create an `ITraceWriter` instance for tracing.        | `NullTrace` (no default tracing method) | - |
-| ```TraceLevel```      | Specifies message filtering to output for the ```ITraceWriter```. Values: *Off*, *Error*, *Warn*, *Info*, *Verbose*      |   ```Error``` | - |
+| ```LoggerFactory``` | Factory to create an `ILogger` instance for tracing.        | `NullTrace` (no default tracing method) | - |
 
 ### Example
 Increase TimeToLiveSeconds to 60 seconds
 ``` c#
 var clientConfiguration = new BetterConfigClientConfiguration
 {
-	ProjectToken = "#YOUR-PROJECT-TOKEN#",
+	ProjectToken = "#YOUR-PROJECT-SECRET#",
 	TimeToLiveSeconds = 60
 };
 
@@ -54,7 +57,7 @@ IBetterConfigClient betterConfigClient = new BetterConfigClient(clientConfigurat
 | ``` T GetConfiguration<T>(T defaultValue) ``` | Serialize the configuration to a passed **T** type. You can customize your **T** with Newtonsoft attributes |
 
 ## Tracing
-The client doesn't use any external logging framework. If you want to add your favourite logging library you have to create an adapter to ` ITraceWriter ` and setup a trace factory method in ` BetterConfigConfiguration `.
+The client doesn't use any external logging framework. If you want to add your favourite logging library you have to create an adapter to `ILogger` and setup a logger factory in `BetterConfigConfiguration`.
 
 ## License
 [MIT](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/LICENSE)

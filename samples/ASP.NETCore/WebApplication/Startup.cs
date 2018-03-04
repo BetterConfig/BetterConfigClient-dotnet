@@ -23,7 +23,8 @@ namespace WebApplication
 
             services.AddSingleton<IBetterConfigClient>(new BetterConfigClient(new BetterConfigClientConfiguration
             {
-                ProjectToken = Configuration["BetterConfigProjectToken"],
+                ProjectSecret = Configuration["BetterConfigProjectToken"],
+                
                 TimeToLiveSeconds = 120
             }));
         }
