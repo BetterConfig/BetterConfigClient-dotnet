@@ -17,6 +17,11 @@ namespace BetterConfig
         public ushort TimeToLiveSeconds { get; set; } = 2;
 
         /// <summary>
+        /// Pool interval in seconds        
+        /// </summary>
+        public ushort PollIntervalSeconds { get; set; } = 0;
+
+        /// <summary>
         /// Project token
         /// </summary>
         public string ProjectSecret

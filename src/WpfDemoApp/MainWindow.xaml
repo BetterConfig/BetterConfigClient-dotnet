@@ -1,0 +1,27 @@
+﻿<Window x:Class="WpfDemoApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfDemoApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <ListView HorizontalAlignment="Left" Height="169" Margin="10,140,0,0" VerticalAlignment="Top" Width="481">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="127,10,0,0" TextWrapping="Wrap" Text="{Binding ProjectSecret}" VerticalAlignment="Top" Width="364"/>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="127,38,0,0" TextWrapping="Wrap" Text="{Binding SettingKey}" VerticalAlignment="Top" Width="364"/>
+        <Label Content="ProjectToken" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top"/>
+        <Label Content="SettingKey" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="127,69,0,0" TextWrapping="Wrap" Text="{Binding SettingValue}" VerticalAlignment="Top" Width="364"/>
+        <Label Content="SettingValue" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
+        <Label Content="PollIntervalSeconds" HorizontalAlignment="Left" Margin="10,102,0,0" VerticalAlignment="Top"/>
+        <Slider HorizontalAlignment="Left" Margin="128,102,0,0" VerticalAlignment="Top" Width="363" Value="{Binding PollInterval}" TickPlacement="TopLeft"/>
+
+    </Grid>
+</Window>

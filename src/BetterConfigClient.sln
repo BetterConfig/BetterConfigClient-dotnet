@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterConfigClient", "Bette
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterConfigClientTests", "BetterConfigClientTests\BetterConfigClientTests.csproj", "{CE6B305F-C098-4CEB-860D-4964B6315B1B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfDemoApp", "WpfDemoApp\WpfDemoApp.csproj", "{1557B3AE-3281-44FB-8782-384DD63363CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{CE6B305F-C098-4CEB-860D-4964B6315B1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE6B305F-C098-4CEB-860D-4964B6315B1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE6B305F-C098-4CEB-860D-4964B6315B1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1557B3AE-3281-44FB-8782-384DD63363CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1557B3AE-3281-44FB-8782-384DD63363CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1557B3AE-3281-44FB-8782-384DD63363CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1557B3AE-3281-44FB-8782-384DD63363CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

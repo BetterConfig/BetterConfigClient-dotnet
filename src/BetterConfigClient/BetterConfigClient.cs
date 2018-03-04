@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using BetterConfig.Logging;
+using System.Threading;
 
 namespace BetterConfig
 {
@@ -13,6 +14,11 @@ namespace BetterConfig
     /// </summary>
     public class BetterConfigClient : IBetterConfigClient, IDisposable
     {
+        /// <summary>
+        /// This event raise when configuration changed
+        /// </summary>
+        public event EventHandler ConfigurationChanged;
+
         private TimeSpan timeToLive;
 
         private Uri url;
@@ -27,8 +33,10 @@ namespace BetterConfig
 
         private readonly ILogger log;
 
-        private static string Version = typeof(BetterConfigClient).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+        private Timer timer;
 
+        private static string Version = typeof(BetterConfigClient).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+        
         /// <summary>
         /// Create an instance of BetterConfigClient
         /// </summary>
@@ -63,6 +71,11 @@ namespace BetterConfig
             this.configuration = configuration;
         
             this.EnsureHttpClient();
+
+            if (this.configuration.PollIntervalSeconds > 0)
+            {
+                this.timer = new Timer(this.TimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(this.configuration.PollIntervalSeconds));
+            }
         }
 
         /// <summary>
@@ -192,12 +205,15 @@ namespace BetterConfig
         public void Dispose()
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
-            if (this.httpClient != null) this.httpClient.Dispose();
+            timer.Dispose();
+
+            if (this.httpClient != null) this.httpClient.Dispose();            
         }
 
         private async Task<Config> UpdateAsync(Config lastConfig)
         {
             Config newConfig = Config.Empty;
+            bool configChanged = false;
 
             var request = new HttpRequestMessage
             {
@@ -224,6 +240,7 @@ namespace BetterConfig
                     newConfig.HttpETag = response.Headers.ETag.Tag;
                     newConfig.JsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     newConfig.TimeStamp = DateTime.UtcNow;
+                    configChanged = true;
                 }                
                 else
                 {
@@ -239,6 +256,11 @@ namespace BetterConfig
 
             this.ConfigStore.Set(newConfig);
 
+            if (configChanged && this.ConfigurationChanged != null)
+            {
+                this.ConfigurationChanged.Invoke(this, EventArgs.Empty);
+            }
+
             return newConfig;
         }       
         
@@ -246,7 +268,7 @@ namespace BetterConfig
         {
             var config = this.ConfigStore.Get();
 
-            if (config.TimeStamp < DateTime.UtcNow.Add(-this.timeToLive))
+            if (this.configuration.PollIntervalSeconds == 0 && config.TimeStamp < DateTime.UtcNow.Add(-this.timeToLive))
             {
                 return await UpdateAsync(config);
             }
@@ -303,6 +325,13 @@ namespace BetterConfig
                     }
                 }
             }
+        }
+        
+        private void TimerCallback(object state)
+        {
+            var config = this.ConfigStore.Get();
+
+            this.UpdateAsync(config).Wait();
         }
     }    
 }
