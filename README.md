@@ -11,7 +11,7 @@ https://betterconfig.com
  Install-Package BetterConfigClient
  ```
  2. Get your Project secret from [BetterConfig.com](https://betterconfig.com) portal:
-![ProjectSecret](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme01.png  "ProjectSecret")
+![ProjectSecret](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme02.png  "ProjectSecret")
 
  3. Create a **BetterConfigClient** instance:
 ```c#
@@ -41,7 +41,7 @@ Increase TimeToLiveSeconds to 60 seconds
 ``` c#
 var clientConfiguration = new BetterConfigClientConfiguration
 {
-	ProjectToken = "#YOUR-PROJECT-SECRET#",
+	ProjectSecret = "#YOUR-PROJECT-SECRET#",
 	TimeToLiveSeconds = 60
 };
 
