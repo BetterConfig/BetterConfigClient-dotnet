@@ -1,10 +1,10 @@
-﻿namespace BetterConfig.Trace
+﻿namespace BetterConfig.Logging
 {
     /// <summary>
-    /// Specifies message's filtering to output for the <see cref="ITraceWriter"/> class.
+    /// Specifies message's filtering to output for the <see cref="ILogger"/> class.
     /// Verbose > Info > Warn > Error > Off
     /// </summary>
-    public enum TraceLevel : byte
+    public enum LogLevel
     {
         /// <summary>
         /// No tracing and any debugging messages.
@@ -25,6 +25,6 @@
         /// <summary>
         /// All messages
         /// </summary>
-        Verbose = 4
+        Debug = 4
     }
 }

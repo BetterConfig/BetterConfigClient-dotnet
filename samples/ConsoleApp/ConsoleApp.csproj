@@ -34,13 +34,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BetterConfigClient, Version=0.1.0.0, Culture=neutral, PublicKeyToken=d28b16a067d7bbe2, processorArchitecture=MSIL">
-      <HintPath>packages\BetterConfigClient.1.0.5\lib\net45\BetterConfigClient.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>packages\BetterConfigClient.1.0.5\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>packages\BetterConfigClient.1.0.6-alpha\lib\net45\BetterConfigClient.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
