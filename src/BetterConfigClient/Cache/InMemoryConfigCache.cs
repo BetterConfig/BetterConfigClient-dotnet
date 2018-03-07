@@ -1,13 +1,14 @@
 ﻿using System.Threading;
 
-namespace BetterConfig
+namespace BetterConfig.Cache
 {
-    internal class ConfigStore
+    internal class InMemoryConfigCache : IConfigCache
     {
         private Config config;
 
         private readonly ReaderWriterLockSlim lockSlim = new ReaderWriterLockSlim();
 
+        /// <inheritdoc />
         public void Set(Config config)
         {
             this.lockSlim.EnterWriteLock();
@@ -22,6 +23,7 @@ namespace BetterConfig
             }
         }
 
+        /// <inheritdoc />
         public Config Get()
         {
             this.lockSlim.EnterReadLock();
@@ -34,11 +36,6 @@ namespace BetterConfig
             {
                 this.lockSlim.ExitReadLock();
             }
-        }
-
-        public void Clear()
-        {
-            this.Set(Config.Empty);
-        }
+        }        
     }
 }

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using BetterConfig.Logging;
+using BetterConfig.ConfigService;
+using BetterConfig.Cache;
 
 namespace BetterConfig
 {
@@ -13,21 +14,16 @@ namespace BetterConfig
     /// </summary>
     public class BetterConfigClient : IBetterConfigClient, IDisposable
     {
-        private TimeSpan timeToLive;
-
-        private Uri url;
-
-        private ConfigStore ConfigStore = new ConfigStore();
-
-        private HttpClient httpClient;
-
-        private readonly object lck = new object();
-
         private readonly BetterConfigClientConfiguration configuration;
 
         private readonly ILogger log;
 
-        private static string Version = typeof(BetterConfigClient).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+        private readonly IConfigService configService;
+
+        private static string version = typeof(BetterConfigClient).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+
+        /// <inheritdoc />
+        public event OnConfigurationChangedEventHandler OnConfigurationChanged;
 
         /// <summary>
         /// Create an instance of BetterConfigClient
@@ -52,76 +48,78 @@ namespace BetterConfig
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            configuration.Validate();            
+            configuration.Validate();
 
-            this.url = configuration.Url;
-
-            this.timeToLive = TimeSpan.FromSeconds(configuration.TimeToLiveSeconds);
+            this.configuration = configuration;
 
             this.log = configuration.LoggerFactory.GetLogger(typeof(BetterConfigClient).Name);
 
-            this.configuration = configuration;
-        
-            this.EnsureHttpClient();
+            var configFetcher = new HttpConfigFetcher(this.configuration.Url, version, this.configuration.LoggerFactory);
+
+            var cache = new InMemoryConfigCache();
+
+            if (this.configuration.PollIntervalSeconds > 0 && this.configuration.AutoPollingEnabled)
+            {
+                var pollingProcessor = new PollingConfigService(
+                    configFetcher,
+                    cache,
+                    TimeSpan.FromSeconds(this.configuration.PollIntervalSeconds),
+                    TimeSpan.FromSeconds(this.configuration.MaxInitWaitTimeSeconds),
+                    this.configuration.LoggerFactory);
+
+                pollingProcessor.OnConfigurationChanged += (sender, args) => { this.OnConfigurationChanged?.Invoke(sender, args); };
+
+                this.configService = pollingProcessor;
+            }
+            else
+            {
+                this.configService = new LazyLoadingConfigService(
+                    configFetcher,
+                    cache,
+                    this.configuration.LoggerFactory,
+                    TimeSpan.FromSeconds(Math.Max(1, this.configuration.CacheTimeToLiveSeconds)));
+            }
         }
 
-        /// <summary>
-        /// Return configuration as a json string
-        /// </summary>
-        /// <returns>All configuration in json string</returns>
+        /// <inheritdoc />
         public string GetConfigurationJsonString()
         {
-            var c = this.GetCacheItemAsync().Result;
+            var c = this.configService.GetConfigAsync().Result;
 
             return c.JsonString;
         }
 
-        /// <summary>
-        /// Return configuration as a json string
-        /// </summary>
-        /// <returns>All configuration in json string</returns>
+        /// <inheritdoc />
         public async Task<string> GetConfigurationJsonStringAsync()
         {
-            var c = await this.GetCacheItemAsync();
+            var c = await this.configService.GetConfigAsync();
 
             return c.JsonString;
         }
 
-        /// <summary>
-        /// Return a value of the key (Key for programs)
-        /// </summary>
-        /// <typeparam name="T">Setting type</typeparam>
-        /// <param name="key">Key for programs</param>
-        /// <param name="defaultValue">In case of failure return this value</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public T GetValue<T>(string key, T defaultValue)
         {
             try
             {
-                var c = this.GetCacheItemAsync().Result;
+                var c = this.configService.GetConfigAsync().Result;
 
                 return this.GetValueLogic<T>(c, key, defaultValue);
             }
             catch (Exception ex)
             {
-                this.log.Error($"Error occured in 'GetValue' method.\n{ex.ToString()}");                
-                
+                this.log.Error($"Error occured in 'GetValue' method.\n{ex.ToString()}");
+
                 return defaultValue;
             }
         }
-        
-        /// <summary>
-        /// Return a value of the key (Key for programs)
-        /// </summary>
-        /// <typeparam name="T">Setting type</typeparam>
-        /// <param name="key">Key for programs</param>
-        /// <param name="defaultValue">In case of failure return this value</param>
-        /// <returns></returns>
+
+        /// <inheritdoc />
         public async Task<T> GetValueAsync<T>(string key, T defaultValue)
         {
             try
             {
-                var c = await this.GetCacheItemAsync().ConfigureAwait(false);
+                var c = await this.configService.GetConfigAsync().ConfigureAwait(false);
 
                 return this.GetValueLogic<T>(c, key, defaultValue);
             }
@@ -131,44 +129,32 @@ namespace BetterConfig
 
                 return defaultValue;
             }
-            
+
         }
 
-        /// <summary>
-        /// Serialize the configuration to a passed <typeparamref name="T"/> type.  
-        /// You can customize your T with Newtonsoft attributes
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="defaultValue">In case of failure return this value</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public T GetConfiguration<T>(T defaultValue)
         {
             try
             {
-                var c = this.GetCacheItemAsync().Result;
+                var c = this.configService.GetConfigAsync().Result;
 
                 return GetConfigurationLogic<T>(c, defaultValue);
             }
             catch (Exception ex)
             {
                 this.log.Error($"Error occured in 'GetConfiguration' method.\n{ex.ToString()}");
-                
+
                 return defaultValue;
-            }           
+            }
         }
 
-        /// <summary>
-        /// Serialize the configuration to a passed <typeparamref name="T"/> type.        
-        /// You can customize your T with Newtonsoft attributes
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="defaultValue">In case of failure return this value</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<T> GetConfigurationAsync<T>(T defaultValue)
         {
             try
             {
-                var c = await this.GetCacheItemAsync().ConfigureAwait(false);
+                var c = await this.configService.GetConfigAsync().ConfigureAwait(false);
 
                 return GetConfigurationLogic<T>(c, defaultValue);
             }
@@ -180,78 +166,25 @@ namespace BetterConfig
             }
         }
 
-        /// <summary>
-        /// Remove all items from cache
-        /// </summary>
-        public void ClearCache()
+        /// <inheritdoc />
+        public void ForceRefresh()
         {
-            this.ConfigStore.Clear();
+            this.configService.RefreshConfigAsync().Wait();
         }
 
-#pragma warning disable CS1591
+        /// <inheritdoc />
+        public async Task ForceRefreshAsync()
+        {
+            await this.configService.RefreshConfigAsync();
+        }
+
+        /// <inheritdoc />
         public void Dispose()
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
-            if (this.httpClient != null) this.httpClient.Dispose();
-        }
-
-        private async Task<Config> UpdateAsync(Config lastConfig)
-        {
-            Config newConfig = Config.Empty;
-
-            var request = new HttpRequestMessage
+            if (this.configService != null && this.configService is IDisposable)
             {
-                Method = HttpMethod.Get,
-                RequestUri = this.url
-            };
-
-            if (lastConfig.HttpETag != null)
-            {
-                request.Headers.IfNoneMatch.Add(new EntityTagHeaderValue(lastConfig.HttpETag));
+                ((IDisposable)this.configService).Dispose();
             }
-
-            try
-            {
-                var response = await this.httpClient.SendAsync(request);
-
-                if (response.StatusCode == System.Net.HttpStatusCode.NotModified)
-                {
-                    newConfig = lastConfig;
-                    newConfig.TimeStamp = DateTime.UtcNow;
-                }
-                else if(response.IsSuccessStatusCode)
-                {
-                    newConfig.HttpETag = response.Headers.ETag.Tag;
-                    newConfig.JsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    newConfig.TimeStamp = DateTime.UtcNow;
-                }                
-                else
-                {
-                    this.EnsureHttpClient(true);
-                }
-            }
-            catch (Exception ex)
-            {
-                this.log.Error($"Error occured in 'UpdateAsync' method.\n{ex.ToString()}");
-
-                this.EnsureHttpClient(true);
-            }          
-
-            this.ConfigStore.Set(newConfig);
-
-            return newConfig;
-        }       
-        
-        private async Task<Config> GetCacheItemAsync()
-        {
-            var config = this.ConfigStore.Get();
-
-            if (config.TimeStamp < DateTime.UtcNow.Add(-this.timeToLive))
-            {
-                return await UpdateAsync(config);
-            }
-
-            return config;
         }
 
         private T GetValueLogic<T>(Config config, string key, T defaultValue)
@@ -286,23 +219,5 @@ namespace BetterConfig
 
             return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(config.JsonString);
         }
-
-        private void EnsureHttpClient(bool force = false)
-        {
-            if (this.httpClient == null || force)
-            {
-                lock (this.lck)
-                {
-                    if (this.httpClient == null || force)
-                    {
-                        this.httpClient = this.configuration.HttpClientFactory();
-
-                        this.httpClient.Timeout = TimeSpan.FromSeconds(30);
-
-                        this.httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("BetterConfigClient-Dotnet", Version));
-                    }
-                }
-            }
-        }
-    }    
+    }
 }

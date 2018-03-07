@@ -1,12 +1,27 @@
-﻿using System.Threading.Tasks;
+﻿using BetterConfig.Logging;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BetterConfig
 {
     /// <summary>
-    /// Provides configuration properties for <c>BetterConfigClient</c>
+    /// Represents the method that will handle an OnConfigurationChangedEvent with <see cref="OnConfigurationChangedEventArgs"/> arguments
     /// </summary>
-    public interface IBetterConfigClient
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Arguments of the event</param>
+    public delegate void OnConfigurationChangedEventHandler(object sender, OnConfigurationChangedEventArgs eventArgs);
+
+    /// <summary>
+    /// Provides client definition for <see cref="BetterConfigClient"/>
+    /// </summary>
+    public interface IBetterConfigClient : IDisposable
     {
+        /// <summary>
+        /// <see cref="OnConfigurationChanged"/> raised when the configuration was updated
+        /// </summary>
+        event OnConfigurationChangedEventHandler OnConfigurationChanged;
+
         /// <summary>
         /// Return configuration as a json string
         /// </summary>
@@ -56,8 +71,13 @@ namespace BetterConfig
         Task<T> GetValueAsync<T>(string key, T defaultValue);
 
         /// <summary>
-        /// Remove all items from cache
+        /// Refresh the configuration
         /// </summary>
-        void ClearCache();
-    }
+        void ForceRefresh();
+
+        /// <summary>
+        /// Refresh the configuration
+        /// </summary>
+        Task ForceRefreshAsync();
+    }    
 }

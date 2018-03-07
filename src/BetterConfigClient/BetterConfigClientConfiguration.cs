@@ -9,15 +9,33 @@ namespace BetterConfig
     /// </summary>
     public sealed class BetterConfigClientConfiguration
     {
-        private string projectSecret;
+        private static Uri CreateUrl(string projectSecret)
+        {
+            return new Uri("https://cdn.betterconfig.com/configuration-files/" + projectSecret + "/config.json");
+        }
 
         /// <summary>
-        /// Cache time to live value in seconds        
+        /// Configuration refresh period (Default value is 60.)
         /// </summary>
-        public ushort TimeToLiveSeconds { get; set; } = 2;
+        public uint PollIntervalSeconds { get; set; } = 60;
 
         /// <summary>
-        /// Project token
+        /// Enable autopolling (Default value is true.)
+        /// </summary>
+        public bool AutoPollingEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Cache time to live value in seconds, minimum value is 1. (Default value is 60.)     
+        /// </summary>
+        public uint CacheTimeToLiveSeconds { get; set; } = 60;
+
+        /// <summary>
+        /// Maximum waiting time between initialization and the first config acquisition in secconds. (Default value is 5.)
+        /// </summary>
+        public uint MaxInitWaitTimeSeconds { get; set; } = 5;
+
+        /// <summary>
+        /// Project secret to get your configuration
         /// </summary>
         public string ProjectSecret
         {
@@ -40,18 +58,15 @@ namespace BetterConfig
 
         internal Uri Url { get; private set; }
 
-        internal Func<HttpClient> HttpClientFactory { get; set; } = () => new HttpClient();        
+        internal Func<HttpClient> HttpClientFactory { get; set; } = () => new HttpClient();
 
-        private static Uri CreateUrl(string projectToken)
-        {
-            return new Uri("https://cdn.betterconfig.com/configuration-files/" + projectToken + "/config.json");
-        }
+        private string projectSecret;        
 
         internal void Validate()
         {
-            if (this.TimeToLiveSeconds == 0)
+            if (this.CacheTimeToLiveSeconds == 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(this.TimeToLiveSeconds), "Value must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(this.CacheTimeToLiveSeconds), "Value must be greater than zero.");
             }
 
             if (string.IsNullOrEmpty(this.ProjectSecret))
@@ -63,6 +78,6 @@ namespace BetterConfig
             {
                 throw new ArgumentNullException(nameof(this.LoggerFactory));
             }
-        }
+        }        
     }
 }

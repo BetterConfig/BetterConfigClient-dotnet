@@ -57,7 +57,7 @@ namespace BetterConfigClientTests
             var clientConfiguration = new BetterConfigClientConfiguration
             {
                 ProjectSecret = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf",
-                TimeToLiveSeconds = 0
+                CacheTimeToLiveSeconds = 0
             };
 
             new BetterConfigClient(clientConfiguration);
@@ -103,6 +103,6 @@ namespace BetterConfigClientTests
             string projectSecret = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf";
 
             new BetterConfigClient(projectSecret);
-        }
+        }        
     }
 }

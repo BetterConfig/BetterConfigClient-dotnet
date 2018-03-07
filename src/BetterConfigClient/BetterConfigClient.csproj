@@ -7,7 +7,7 @@
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>strongname.snk</AssemblyOriginatorKeyFile>    
-    <Version>1.0.6</Version>    
+    <Version>1.0.7-alfa</Version>    
     <Copyright>Copyright © BetterConfig 2018</Copyright>    
     <Company>BetterConfig</Company>    
     <Authors>BetterConfig</Authors>    
