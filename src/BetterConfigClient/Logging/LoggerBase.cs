@@ -53,8 +53,9 @@ namespace BetterConfig.Logging
         protected void Log(LogLevel logLevel, string message)
         {
             if (this.TargetLogEnabled(logLevel))
-
+            {
                 this.LogMessage(FormatMessage(logLevel, message));
+            }
         }
 
         /// <inheritdoc />

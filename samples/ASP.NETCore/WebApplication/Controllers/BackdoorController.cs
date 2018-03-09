@@ -24,7 +24,7 @@ namespace WebApplication.Controllers
         [Route("betterconfigchanged")]
         public void BetterConfigChanged()
         {
-            this.betterConfigClient.ClearCache();
+            this.betterConfigClient.ForceRefresh();
         }
     }
 }

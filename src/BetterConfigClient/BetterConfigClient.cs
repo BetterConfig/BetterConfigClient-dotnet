@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading.Tasks;
-using System.Net.Http.Headers;
-using Newtonsoft.Json.Linq;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 using BetterConfig.Logging;
+using BetterConfig.ConfigService;
+using BetterConfig.Cache;
+using BetterConfig.Configuration;
 
 namespace BetterConfig
 {
@@ -13,115 +14,148 @@ namespace BetterConfig
     /// </summary>
     public class BetterConfigClient : IBetterConfigClient, IDisposable
     {
-        private TimeSpan timeToLive;
+        private ILogger log;
 
-        private Uri url;
+        private readonly IConfigService configService;
 
-        private ConfigStore ConfigStore = new ConfigStore();
+        private static string version = typeof(BetterConfigClient).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
 
-        private HttpClient httpClient;
-
-        private readonly object lck = new object();
-
-        private readonly BetterConfigClientConfiguration configuration;
-
-        private readonly ILogger log;
-
-        private static string Version = typeof(BetterConfigClient).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+        /// <inheritdoc />
+        public event OnConfigurationChangedEventHandler OnConfigurationChanged;
 
         /// <summary>
-        /// Create an instance of BetterConfigClient
+        /// Create an instance of BetterConfigClient and setup AutoPoll mode
         /// </summary>
         /// <param name="projectSecret">Project secret to access configuration</param>
         /// <exception cref="ArgumentException">When the <paramref name="projectSecret"/> is null or empty</exception>                
-        public BetterConfigClient(string projectSecret) : this(new BetterConfigClientConfiguration { ProjectSecret = projectSecret })
+        public BetterConfigClient(string projectSecret) : this(new AutoPollConfiguration { ProjectSecret = projectSecret })
         {
-        }
+        }       
 
         /// <summary>
-        /// Create an instance of BetterConfigClient
+        /// Create an instance of BetterConfigClient and setup AutoPoll mode
         /// </summary>
-        /// <param name="configuration">BetterConfigClient configuration</param>
+        /// <param name="configuration">Configuration for AutoPolling mode</param>
         /// <exception cref="ArgumentException">When the configuration contains any invalid property</exception>
-        /// <exception cref="ArgumentNullException">When the configuration is null</exception>        
-        /// <exception cref="ArgumentOutOfRangeException">When TimeToLive value is not in a proper range</exception>        
-        public BetterConfigClient(BetterConfigClientConfiguration configuration)
+        /// <exception cref="ArgumentNullException">When the configuration is null</exception>                
+        public BetterConfigClient(AutoPollConfiguration configuration)
         {
             if (configuration == null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            configuration.Validate();            
+            configuration.Validate();
 
-            this.url = configuration.Url;
+            InitializeClient(configuration);
 
-            this.timeToLive = TimeSpan.FromSeconds(configuration.TimeToLiveSeconds);
+            var configService = new AutoPollConfigService(
+                    new HttpConfigFetcher(configuration.Url, "a-" + version, configuration.LoggerFactory),
+                    new InMemoryConfigCache(),
+                    TimeSpan.FromSeconds(configuration.PollIntervalSeconds),
+                    TimeSpan.FromSeconds(configuration.MaxInitWaitTimeSeconds),
+                    configuration.LoggerFactory);
 
-            this.log = configuration.LoggerFactory.GetLogger(typeof(BetterConfigClient).Name);
+            configService.OnConfigurationChanged += (sender, args) => { this.OnConfigurationChanged?.Invoke(sender, args); };
 
-            this.configuration = configuration;
-        
-            this.EnsureHttpClient();
+            this.configService = configService;
         }
 
         /// <summary>
-        /// Return configuration as a json string
+        /// Create an instance of BetterConfigClient and setup LazyLoad mode
         /// </summary>
-        /// <returns>All configuration in json string</returns>
+        /// <param name="configuration">Configuration for LazyLoading mode</param>
+        /// <exception cref="ArgumentException">When the configuration contains any invalid property</exception>
+        /// <exception cref="ArgumentNullException">When the configuration is null</exception>  
+        public BetterConfigClient(LazyLoadConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            configuration.Validate();
+
+            InitializeClient(configuration);
+
+            var configService = new LazyLoadConfigService(
+                new HttpConfigFetcher(configuration.Url, "l-" + version, configuration.LoggerFactory),
+                new InMemoryConfigCache(),
+                configuration.LoggerFactory,
+                TimeSpan.FromSeconds(configuration.CacheTimeToLiveSeconds));
+
+            this.configService = configService;
+        }
+
+        /// <summary>
+        /// Create an instance of BetterConfigClient and setup ManualPoll mode
+        /// </summary>
+        /// <param name="configuration">Configuration for LazyLoading mode</param>
+        /// <exception cref="ArgumentException">When the configuration contains any invalid property</exception>
+        /// <exception cref="ArgumentNullException">When the configuration is null</exception>  
+        public BetterConfigClient(ManualPollConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            configuration.Validate();
+
+            InitializeClient(configuration);
+
+            var configService = new ManualPollConfigService(
+                new HttpConfigFetcher(configuration.Url, "m-" + version, configuration.LoggerFactory),
+                new InMemoryConfigCache(),
+                configuration.LoggerFactory);
+
+            this.configService = configService;
+        }
+
+        private void InitializeClient(ConfigurationBase configuration)
+        {
+            this.log = configuration.LoggerFactory.GetLogger(nameof(BetterConfigClient));
+        }
+
+        /// <inheritdoc />
         public string GetConfigurationJsonString()
         {
-            var c = this.GetCacheItemAsync().Result;
+            var c = this.configService.GetConfigAsync().Result;
 
             return c.JsonString;
         }
 
-        /// <summary>
-        /// Return configuration as a json string
-        /// </summary>
-        /// <returns>All configuration in json string</returns>
+        /// <inheritdoc />
         public async Task<string> GetConfigurationJsonStringAsync()
         {
-            var c = await this.GetCacheItemAsync();
+            var c = await this.configService.GetConfigAsync();
 
             return c.JsonString;
         }
 
-        /// <summary>
-        /// Return a value of the key (Key for programs)
-        /// </summary>
-        /// <typeparam name="T">Setting type</typeparam>
-        /// <param name="key">Key for programs</param>
-        /// <param name="defaultValue">In case of failure return this value</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public T GetValue<T>(string key, T defaultValue)
         {
             try
             {
-                var c = this.GetCacheItemAsync().Result;
+                var c = this.configService.GetConfigAsync().Result;
 
                 return this.GetValueLogic<T>(c, key, defaultValue);
             }
             catch (Exception ex)
             {
-                this.log.Error($"Error occured in 'GetValue' method.\n{ex.ToString()}");                
-                
+                this.log.Error($"Error occured in 'GetValue' method.\n{ex.ToString()}");
+
                 return defaultValue;
             }
         }
-        
-        /// <summary>
-        /// Return a value of the key (Key for programs)
-        /// </summary>
-        /// <typeparam name="T">Setting type</typeparam>
-        /// <param name="key">Key for programs</param>
-        /// <param name="defaultValue">In case of failure return this value</param>
-        /// <returns></returns>
+
+        /// <inheritdoc />
         public async Task<T> GetValueAsync<T>(string key, T defaultValue)
         {
             try
             {
-                var c = await this.GetCacheItemAsync().ConfigureAwait(false);
+                var c = await this.configService.GetConfigAsync().ConfigureAwait(false);
 
                 return this.GetValueLogic<T>(c, key, defaultValue);
             }
@@ -131,44 +165,32 @@ namespace BetterConfig
 
                 return defaultValue;
             }
-            
+
         }
 
-        /// <summary>
-        /// Serialize the configuration to a passed <typeparamref name="T"/> type.  
-        /// You can customize your T with Newtonsoft attributes
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="defaultValue">In case of failure return this value</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public T GetConfiguration<T>(T defaultValue)
         {
             try
             {
-                var c = this.GetCacheItemAsync().Result;
+                var c = this.configService.GetConfigAsync().Result;
 
                 return GetConfigurationLogic<T>(c, defaultValue);
             }
             catch (Exception ex)
             {
                 this.log.Error($"Error occured in 'GetConfiguration' method.\n{ex.ToString()}");
-                
+
                 return defaultValue;
-            }           
+            }
         }
 
-        /// <summary>
-        /// Serialize the configuration to a passed <typeparamref name="T"/> type.        
-        /// You can customize your T with Newtonsoft attributes
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="defaultValue">In case of failure return this value</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<T> GetConfigurationAsync<T>(T defaultValue)
         {
             try
             {
-                var c = await this.GetCacheItemAsync().ConfigureAwait(false);
+                var c = await this.configService.GetConfigAsync().ConfigureAwait(false);
 
                 return GetConfigurationLogic<T>(c, defaultValue);
             }
@@ -180,81 +202,28 @@ namespace BetterConfig
             }
         }
 
-        /// <summary>
-        /// Remove all items from cache
-        /// </summary>
-        public void ClearCache()
+        /// <inheritdoc />
+        public void ForceRefresh()
         {
-            this.ConfigStore.Clear();
+            this.configService.RefreshConfigAsync().Wait();
         }
 
-#pragma warning disable CS1591
+        /// <inheritdoc />
+        public async Task ForceRefreshAsync()
+        {
+            await this.configService.RefreshConfigAsync();
+        }
+
+        /// <inheritdoc />
         public void Dispose()
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
-            if (this.httpClient != null) this.httpClient.Dispose();
+            if (this.configService != null && this.configService is IDisposable)
+            {
+                ((IDisposable)this.configService).Dispose();
+            }
         }
 
-        private async Task<Config> UpdateAsync(Config lastConfig)
-        {
-            Config newConfig = Config.Empty;
-
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Get,
-                RequestUri = this.url
-            };
-
-            if (lastConfig.HttpETag != null)
-            {
-                request.Headers.IfNoneMatch.Add(new EntityTagHeaderValue(lastConfig.HttpETag));
-            }
-
-            try
-            {
-                var response = await this.httpClient.SendAsync(request);
-
-                if (response.StatusCode == System.Net.HttpStatusCode.NotModified)
-                {
-                    newConfig = lastConfig;
-                    newConfig.TimeStamp = DateTime.UtcNow;
-                }
-                else if(response.IsSuccessStatusCode)
-                {
-                    newConfig.HttpETag = response.Headers.ETag.Tag;
-                    newConfig.JsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    newConfig.TimeStamp = DateTime.UtcNow;
-                }                
-                else
-                {
-                    this.EnsureHttpClient(true);
-                }
-            }
-            catch (Exception ex)
-            {
-                this.log.Error($"Error occured in 'UpdateAsync' method.\n{ex.ToString()}");
-
-                this.EnsureHttpClient(true);
-            }          
-
-            this.ConfigStore.Set(newConfig);
-
-            return newConfig;
-        }       
-        
-        private async Task<Config> GetCacheItemAsync()
-        {
-            var config = this.ConfigStore.Get();
-
-            if (config.TimeStamp < DateTime.UtcNow.Add(-this.timeToLive))
-            {
-                return await UpdateAsync(config);
-            }
-
-            return config;
-        }
-
-        private T GetValueLogic<T>(Config config, string key, T defaultValue)
+        private T GetValueLogic<T>(ProjectConfig config, string key, T defaultValue)
         {
             if (config.JsonString == null)
             {
@@ -277,7 +246,7 @@ namespace BetterConfig
             return rawValue.Value<T>();
         }
 
-        private T GetConfigurationLogic<T>(Config config, T defaultValue)
+        private T GetConfigurationLogic<T>(ProjectConfig config, T defaultValue)
         {
             if (config.JsonString == null)
             {
@@ -287,22 +256,14 @@ namespace BetterConfig
             return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(config.JsonString);
         }
 
-        private void EnsureHttpClient(bool force = false)
+        /// <summary>
+        /// Create a <see cref="BetterConfigClientBuilder"/> instance to setup the client
+        /// </summary>
+        /// <param name="projectSecret"></param>
+        /// <returns></returns>
+        public static BetterConfigClientBuilder Create(string projectSecret)
         {
-            if (this.httpClient == null || force)
-            {
-                lock (this.lck)
-                {
-                    if (this.httpClient == null || force)
-                    {
-                        this.httpClient = this.configuration.HttpClientFactory();
-
-                        this.httpClient.Timeout = TimeSpan.FromSeconds(30);
-
-                        this.httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("BetterConfigClient-Dotnet", Version));
-                    }
-                }
-            }
+            return BetterConfigClientBuilder.Initialize(projectSecret);
         }
-    }    
+    }
 }
