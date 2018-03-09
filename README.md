@@ -62,11 +62,11 @@ Configuration parameters are different in each mode:
 
 ### Example - increase CacheTimeToLiveSeconds to 60 seconds
 ``` c#
-var clientConfiguration = new BetterConfigClientConfiguration
-{
-	ProjectToken = "#YOUR-PROJECT-SECRET#",
-	CacheTimeToLiveSeconds = 60
-};
+var clientConfiguration = new BetterConfig.Configuration.LazyLoadConfiguration
+            {
+                ProjectSecret = "#YOUR-PROJECT-SECRET#",
+                CacheTimeToLiveSeconds = 60
+            };
 
 IBetterConfigClient betterConfigClient = new BetterConfigClient(clientConfiguration);
 ```
