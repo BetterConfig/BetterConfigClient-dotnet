@@ -117,7 +117,7 @@ IBetterConfigClient client = BetterConfigClientBuilder
 	.Initialize("YOUR-PROJECT-SECRET")
     .WithLazyLoad()
     .WithCacheTimeToLiveSeconds(120)
-    .Create();
+    .Build();
 ```
 
 ## Members
