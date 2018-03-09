@@ -11,7 +11,7 @@
         /// Create a <see cref="IBetterConfigClient"/> instance
         /// </summary>
         /// <returns></returns>
-        public IBetterConfigClient Create()
+        public IBetterConfigClient Build()
         {
             return new BetterConfigClient(this.configuration);
         }

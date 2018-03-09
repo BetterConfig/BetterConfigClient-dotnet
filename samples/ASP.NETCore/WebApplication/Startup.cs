@@ -24,7 +24,7 @@ namespace WebApplication
 
             services.AddSingleton<IBetterConfigClient>(new BetterConfigClient(new LazyLoadConfiguration
             {
-                ProjectSecret = Configuration["BetterConfigProjectToken"],
+                ProjectSecret = Configuration["BetterConfigProjectSecret"],
 
                 CacheTimeToLiveSeconds = 120
             }));

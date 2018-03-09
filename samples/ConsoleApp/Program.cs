@@ -13,7 +13,7 @@ namespace ConsoleApp
                 .Initialize(projectSecret)
                 .WithAutoPoll()
                 .WithMaxInitWaitTimeSeconds(10)
-                .Create();
+                .Build();
 
             // current project's setting key name is 'keyBool'            
             var myNewFeatureEnabled = betterConfigClient.GetValue("keyBool", false);
