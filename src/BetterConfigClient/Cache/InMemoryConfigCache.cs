@@ -4,12 +4,12 @@ namespace BetterConfig.Cache
 {
     internal class InMemoryConfigCache : IConfigCache
     {
-        private Config config;
+        private ProjectConfig config;
 
         private readonly ReaderWriterLockSlim lockSlim = new ReaderWriterLockSlim();
 
         /// <inheritdoc />
-        public void Set(Config config)
+        public void Set(ProjectConfig config)
         {
             this.lockSlim.EnterWriteLock();
 
@@ -24,7 +24,7 @@ namespace BetterConfig.Cache
         }
 
         /// <inheritdoc />
-        public Config Get()
+        public ProjectConfig Get()
         {
             this.lockSlim.EnterReadLock();
 

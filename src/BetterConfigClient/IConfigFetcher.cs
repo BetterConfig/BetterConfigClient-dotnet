@@ -16,6 +16,6 @@ namespace BetterConfig
         /// </summary>
         /// <param name="lastConfig">Last of fetched configuration if it is present</param>
         /// <returns></returns>
-        Task<Config> Fetch(Config lastConfig);
+        Task<ProjectConfig> Fetch(ProjectConfig lastConfig);
     }
 }

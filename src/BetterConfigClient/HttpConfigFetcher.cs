@@ -29,9 +29,9 @@ namespace BetterConfig
             ReInitializeHttpClient();
         }
 
-        public async Task<Config> Fetch(Config lastConfig)
+        public async Task<ProjectConfig> Fetch(ProjectConfig lastConfig)
         {
-            Config newConfig = Config.Empty;
+            ProjectConfig newConfig = ProjectConfig.Empty;
 
             var request = new HttpRequestMessage
             {
@@ -86,7 +86,7 @@ namespace BetterConfig
                     Timeout = TimeSpan.FromSeconds(30)
                 };
 
-                this.httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("BetterConfigClient-Dotnet", productVersion));
+                this.httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("BetterConfigClient-Dotnet", productVersion));                
             }
         }
     }

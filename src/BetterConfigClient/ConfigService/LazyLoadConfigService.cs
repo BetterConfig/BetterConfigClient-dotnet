@@ -5,28 +5,17 @@ using System.Threading.Tasks;
 
 namespace BetterConfig.ConfigService
 {
-    internal sealed class LazyLoadingConfigService : IConfigService
+    internal sealed class LazyLoadConfigService : ConfigServiceBase, IConfigService
     {
-        private readonly TimeSpan cacheTimeToLive;
+        private readonly TimeSpan cacheTimeToLive;        
 
-        private IConfigFetcher configFetcher;
-
-        private IConfigCache configCache;
-
-        private ILogger log;
-
-        internal LazyLoadingConfigService(IConfigFetcher configFetcher, IConfigCache configCache, ILoggerFactory loggerFactory, TimeSpan cacheTimeToLive)
-        {
-            this.configFetcher = configFetcher;
-
-            this.configCache = configCache;
-
-            this.log = loggerFactory.GetLogger(nameof(LazyLoadingConfigService));
-
+        internal LazyLoadConfigService(IConfigFetcher configFetcher, IConfigCache configCache, ILoggerFactory loggerFactory, TimeSpan cacheTimeToLive)
+            : base(configFetcher, configCache, loggerFactory.GetLogger(nameof(LazyLoadConfigService)))
+        {   
             this.cacheTimeToLive = cacheTimeToLive;
         }
 
-        public async Task<Config> GetConfigAsync()
+        public async Task<ProjectConfig> GetConfigAsync()
         {
             var config = this.configCache.Get();
 
@@ -42,10 +31,12 @@ namespace BetterConfig.ConfigService
 
         public async Task RefreshConfigAsync()
         {
-            await RefreshConfigLogic(Config.Empty).ConfigureAwait(false);
+            var config = this.configCache.Get();
+
+            await RefreshConfigLogic(config).ConfigureAwait(false);
         }
 
-        private async Task<Config> RefreshConfigLogic(Config config)
+        private async Task<ProjectConfig> RefreshConfigLogic(ProjectConfig config)
         {
             config = await this.configFetcher.Fetch(config).ConfigureAwait(false);
 

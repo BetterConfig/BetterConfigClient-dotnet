@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace BetterConfig
 {
-    internal struct Config : IEquatable<Config>
+    internal struct ProjectConfig : IEquatable<ProjectConfig>
     {
-        public readonly static Config Empty = new Config(null, DateTime.MinValue, null);
+        public readonly static ProjectConfig Empty = new ProjectConfig(null, DateTime.MinValue, null);
 
         public string JsonString { get; set; }
 
@@ -13,7 +13,7 @@ namespace BetterConfig
 
         public string HttpETag {get; set;}
         
-        internal Config(string jsonString, DateTime timeStamp, string httpETag)
+        internal ProjectConfig(string jsonString, DateTime timeStamp, string httpETag)
         {
             this.JsonString = jsonString;
 
@@ -24,10 +24,10 @@ namespace BetterConfig
 
         public override bool Equals(object obj)
         {
-            return this.Equals((Config)obj);
+            return this.Equals((ProjectConfig)obj);
         }
 
-        public bool Equals(Config other)
+        public bool Equals(ProjectConfig other)
         {
             return this.HttpETag == other.HttpETag && this.JsonString == other.JsonString;
         }

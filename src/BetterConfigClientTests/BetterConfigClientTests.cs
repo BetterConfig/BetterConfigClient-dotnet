@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BetterConfig;
+using BetterConfig.Configuration;
 
 namespace BetterConfigClientTests
 {
@@ -28,9 +29,9 @@ namespace BetterConfigClientTests
 
         [ExpectedException(typeof(ArgumentException))]
         [TestMethod]
-        public void CreateAnInstance_WhenConfigurationProjectSecretIsNull_ShouldThrowArgumentNullException()
+        public void CreateAnInstance_WhenAutoPollConfigurationProjectSecretIsNull_ShouldThrowArgumentNullException()
         {
-            var clientConfiguration = new BetterConfigClientConfiguration
+            var clientConfiguration = new AutoPollConfiguration
             {
                 ProjectSecret = null
             };
@@ -42,7 +43,7 @@ namespace BetterConfigClientTests
         [TestMethod]
         public void CreateAnInstance_WhenConfigurationProjectSecretIsEmpty_ShouldThrowArgumentNullException()
         {
-            var clientConfiguration = new BetterConfigClientConfiguration
+            var clientConfiguration = new AutoPollConfiguration
             {
                 ProjectSecret = string.Empty
             };
@@ -52,9 +53,9 @@ namespace BetterConfigClientTests
 
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         [TestMethod]
-        public void CreateAnInstance_WhenConfigurationTimeToLiveSecondsIsZero_ShouldThrowArgumentOutOfRangeException()
+        public void CreateAnInstance_WhenLazyLoadConfigurationTimeToLiveSecondsIsZero_ShouldThrowArgumentOutOfRangeException()
         {
-            var clientConfiguration = new BetterConfigClientConfiguration
+            var clientConfiguration = new LazyLoadConfiguration
             {
                 ProjectSecret = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf",
                 CacheTimeToLiveSeconds = 0
@@ -67,7 +68,7 @@ namespace BetterConfigClientTests
         [TestMethod]
         public void CreateAnInstance_WhenLoggerFactoryIsNull_ShouldThrowArgumentNullException()
         {
-            var clientConfiguration = new BetterConfigClientConfiguration
+            var clientConfiguration = new AutoPollConfiguration
             {
                 ProjectSecret = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf",
                 LoggerFactory = null
@@ -79,9 +80,9 @@ namespace BetterConfigClientTests
 
         [ExpectedException(typeof(ArgumentNullException))]
         [TestMethod]
-        public void CreateAnInstance_WhenConfigurationIsNull_ShouldThrowArgumentNullException()
+        public void CreateAnInstance_WhenAutoPollConfigurationIsNull_ShouldThrowArgumentNullException()
         {
-            BetterConfigClientConfiguration config = null;
+            AutoPollConfiguration config = null;
 
             new BetterConfigClient(config);
         }
@@ -89,7 +90,7 @@ namespace BetterConfigClientTests
         [TestMethod]
         public void CreateAnInstance_WithValidConfiguration_ShouldCreateAnInstance()
         {
-            BetterConfigClientConfiguration config = new BetterConfigClientConfiguration
+            var config = new AutoPollConfiguration
             {
                 ProjectSecret = "hsdrTr4sxbHdSgdhHRZds346hdgsS2vfsgf/GsdrTr4sxbHdSgdhHRZds346hdOPsSgvfsgf"
             };
@@ -105,4 +106,6 @@ namespace BetterConfigClientTests
             new BetterConfigClient(projectSecret);
         }        
     }
+
+    internal class BetterConfigClientConfigurationStub : ConfigurationBase { }
 }

@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 using BetterConfig.Logging;
 using BetterConfig.ConfigService;
 using BetterConfig.Cache;
+using BetterConfig.Configuration;
 
 namespace BetterConfig
 {
@@ -14,9 +14,7 @@ namespace BetterConfig
     /// </summary>
     public class BetterConfigClient : IBetterConfigClient, IDisposable
     {
-        private readonly BetterConfigClientConfiguration configuration;
-
-        private readonly ILogger log;
+        private ILogger log;
 
         private readonly IConfigService configService;
 
@@ -26,22 +24,21 @@ namespace BetterConfig
         public event OnConfigurationChangedEventHandler OnConfigurationChanged;
 
         /// <summary>
-        /// Create an instance of BetterConfigClient
+        /// Create an instance of BetterConfigClient and setup AutoPoll mode
         /// </summary>
         /// <param name="projectSecret">Project secret to access configuration</param>
         /// <exception cref="ArgumentException">When the <paramref name="projectSecret"/> is null or empty</exception>                
-        public BetterConfigClient(string projectSecret) : this(new BetterConfigClientConfiguration { ProjectSecret = projectSecret })
+        public BetterConfigClient(string projectSecret) : this(new AutoPollConfiguration { ProjectSecret = projectSecret })
         {
-        }
+        }       
 
         /// <summary>
-        /// Create an instance of BetterConfigClient
+        /// Create an instance of BetterConfigClient and setup AutoPoll mode
         /// </summary>
-        /// <param name="configuration">BetterConfigClient configuration</param>
+        /// <param name="configuration">Configuration for AutoPolling mode</param>
         /// <exception cref="ArgumentException">When the configuration contains any invalid property</exception>
-        /// <exception cref="ArgumentNullException">When the configuration is null</exception>        
-        /// <exception cref="ArgumentOutOfRangeException">When TimeToLive value is not in a proper range</exception>        
-        public BetterConfigClient(BetterConfigClientConfiguration configuration)
+        /// <exception cref="ArgumentNullException">When the configuration is null</exception>                
+        public BetterConfigClient(AutoPollConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -50,35 +47,74 @@ namespace BetterConfig
 
             configuration.Validate();
 
-            this.configuration = configuration;
+            InitializeClient(configuration);
 
-            this.log = configuration.LoggerFactory.GetLogger(typeof(BetterConfigClient).Name);
+            var configService = new AutoPollConfigService(
+                    new HttpConfigFetcher(configuration.Url, "a-" + version, configuration.LoggerFactory),
+                    new InMemoryConfigCache(),
+                    TimeSpan.FromSeconds(configuration.PollIntervalSeconds),
+                    TimeSpan.FromSeconds(configuration.MaxInitWaitTimeSeconds),
+                    configuration.LoggerFactory);
 
-            var configFetcher = new HttpConfigFetcher(this.configuration.Url, version, this.configuration.LoggerFactory);
+            configService.OnConfigurationChanged += (sender, args) => { this.OnConfigurationChanged?.Invoke(sender, args); };
 
-            var cache = new InMemoryConfigCache();
+            this.configService = configService;
+        }
 
-            if (this.configuration.PollIntervalSeconds > 0 && this.configuration.AutoPollingEnabled)
+        /// <summary>
+        /// Create an instance of BetterConfigClient and setup LazyLoad mode
+        /// </summary>
+        /// <param name="configuration">Configuration for LazyLoading mode</param>
+        /// <exception cref="ArgumentException">When the configuration contains any invalid property</exception>
+        /// <exception cref="ArgumentNullException">When the configuration is null</exception>  
+        public BetterConfigClient(LazyLoadConfiguration configuration)
+        {
+            if (configuration == null)
             {
-                var pollingProcessor = new PollingConfigService(
-                    configFetcher,
-                    cache,
-                    TimeSpan.FromSeconds(this.configuration.PollIntervalSeconds),
-                    TimeSpan.FromSeconds(this.configuration.MaxInitWaitTimeSeconds),
-                    this.configuration.LoggerFactory);
-
-                pollingProcessor.OnConfigurationChanged += (sender, args) => { this.OnConfigurationChanged?.Invoke(sender, args); };
-
-                this.configService = pollingProcessor;
+                throw new ArgumentNullException(nameof(configuration));
             }
-            else
+
+            configuration.Validate();
+
+            InitializeClient(configuration);
+
+            var configService = new LazyLoadConfigService(
+                new HttpConfigFetcher(configuration.Url, "l-" + version, configuration.LoggerFactory),
+                new InMemoryConfigCache(),
+                configuration.LoggerFactory,
+                TimeSpan.FromSeconds(configuration.CacheTimeToLiveSeconds));
+
+            this.configService = configService;
+        }
+
+        /// <summary>
+        /// Create an instance of BetterConfigClient and setup ManualPoll mode
+        /// </summary>
+        /// <param name="configuration">Configuration for LazyLoading mode</param>
+        /// <exception cref="ArgumentException">When the configuration contains any invalid property</exception>
+        /// <exception cref="ArgumentNullException">When the configuration is null</exception>  
+        public BetterConfigClient(ManualPollConfiguration configuration)
+        {
+            if (configuration == null)
             {
-                this.configService = new LazyLoadingConfigService(
-                    configFetcher,
-                    cache,
-                    this.configuration.LoggerFactory,
-                    TimeSpan.FromSeconds(Math.Max(1, this.configuration.CacheTimeToLiveSeconds)));
+                throw new ArgumentNullException(nameof(configuration));
             }
+
+            configuration.Validate();
+
+            InitializeClient(configuration);
+
+            var configService = new ManualPollConfigService(
+                new HttpConfigFetcher(configuration.Url, "m-" + version, configuration.LoggerFactory),
+                new InMemoryConfigCache(),
+                configuration.LoggerFactory);
+
+            this.configService = configService;
+        }
+
+        private void InitializeClient(ConfigurationBase configuration)
+        {
+            this.log = configuration.LoggerFactory.GetLogger(nameof(BetterConfigClient));
         }
 
         /// <inheritdoc />
@@ -187,7 +223,7 @@ namespace BetterConfig
             }
         }
 
-        private T GetValueLogic<T>(Config config, string key, T defaultValue)
+        private T GetValueLogic<T>(ProjectConfig config, string key, T defaultValue)
         {
             if (config.JsonString == null)
             {
@@ -210,7 +246,7 @@ namespace BetterConfig
             return rawValue.Value<T>();
         }
 
-        private T GetConfigurationLogic<T>(Config config, T defaultValue)
+        private T GetConfigurationLogic<T>(ProjectConfig config, T defaultValue)
         {
             if (config.JsonString == null)
             {
@@ -218,6 +254,16 @@ namespace BetterConfig
             }
 
             return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(config.JsonString);
+        }
+
+        /// <summary>
+        /// Create a <see cref="BetterConfigClientBuilder"/> instance to setup the client
+        /// </summary>
+        /// <param name="projectSecret"></param>
+        /// <returns></returns>
+        public static BetterConfigClientBuilder Create(string projectSecret)
+        {
+            return BetterConfigClientBuilder.Initialize(projectSecret);
         }
     }
 }

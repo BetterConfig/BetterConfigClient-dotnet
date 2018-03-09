@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using BetterConfig;
+using BetterConfig.Configuration;
 
 namespace WebApplication
 {
@@ -21,11 +22,11 @@ namespace WebApplication
         {
             services.AddMvc();
 
-            services.AddSingleton<IBetterConfigClient>(new BetterConfigClient(new BetterConfigClientConfiguration
+            services.AddSingleton<IBetterConfigClient>(new BetterConfigClient(new LazyLoadConfiguration
             {
                 ProjectSecret = Configuration["BetterConfigProjectToken"],
-                
-                TimeToLiveSeconds = 120
+
+                CacheTimeToLiveSeconds = 120
             }));
         }
 

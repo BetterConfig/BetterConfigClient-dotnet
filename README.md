@@ -1,5 +1,6 @@
 
 
+
 # BetterConfig client for .NET
 BetterConfig integrates with your products to allow you to create and configure apps, backends, websites and other programs using an easy to follow online User Interface (UI).
 https://betterconfig.com  
@@ -27,29 +28,40 @@ if(isMyAwesomeFeatureEnabled)
     //show your awesome feature to the world!
 }
 ```
+5. On application exit:
+``` c#
+betterConfigClient.Dispose();
+```
 
 ## Configuration
-Client supports two different modes to acquire the latest configuration from the betterconfig.
+Client supports three different modes to acquire the configuration from the betterconfig. When the client downloads the latest configuration puts into the internal cache and it serves any settings acquisition from cache. With these modes you can manage settings' lifetimes easily.
 
-### Polling mode (default)
-Client downloads the latest configuration and puts into a cache repeatedly. You can subscribe to an event ```OnConfigurationChanged``` to get notification about configuration changes. Set ```AutoPollingEnabled``` to false to disable this mode (or set ```PollingIntervalSeconds``` to zero.)
+### Auto polling mode (default)
+Client downloads the latest configuration and puts into a cache repeatedly. You can subscribe to an event ```OnConfigurationChanged``` to get notification about configuration changes. (use ```PollingIntervalSeconds``` parameter to manage polling interval.
 
 ### Lazy loading mode
-Client downloads the latest configuration only when it is not present or expired (use CacheTimeToLiveSeconds to manage configuration expire).
+Client downloads the latest configuration only when it is not present or expired (use ```CacheTimeToLiveSeconds``` to manage configuration lifetime).
 
+### Manual polling mode
+With this mode you always have to invoke ```.ForceRefresh()``` method to download a latest configuration into the cache. When the cache is empty (for example after client initialization) and try to acquire any value you'll get the default value!
 
 ---
-You can configure the client with ```BetterConfigConfiguration``` object.
-Configuration parameters are the followings:
 
-| PropertyName        | Description           | Default  | Required |
+Configuration parameters are different in each mode:
+### Base configuration
+| PropertyName        | Description           | Default  
 | --- | --- | --- | --- |
-| ```ProjectSecret```      | Project secret to access your configuration  | - | YES |
-| ```CacheTimeToLiveSeconds```      | When the client running in LazyLoadingMode use this value to cache configuration. (In the Polling mode this setting is invalid)|   60 | - |
-| ```PollIntervalSeconds ```      | Polling interval (in LazyLoading mode this is invalid)|   60 | - |
-| ```MaxInitWaitTimeSeconds```      | Maximum waiting time between the client initialization and the first config acquisition in secconds. (in LazyLoading mode this is invalid)|   5 | - |
-| ```LoggerFactory``` | Factory to create an `ILogger` instance for tracing.        | `NullTrace` (no default tracing method) | - |
-| ```AutoPollingEnabled``` | Enable/Disable polling mode | ```true``` | -
+| ```ProjectSecret```      | Project secret to access your configuration  | REQUIRED
+| ```LoggerFactory``` | Factory to create an `ILogger` instance for tracing.        | `NullTrace` (no default tracing method) | 
+### Auto polling
+| PropertyName        | Description           | Default  
+| --- | --- | --- 
+| ```PollIntervalSeconds ```      | Polling interval|   60 | 
+| ```MaxInitWaitTimeSeconds```      | Maximum waiting time between the client initialization and the first config acquisition in secconds.|   5 
+### Lazy loading
+| PropertyName        | Description           | Default  
+| --- | --- | --- | 
+| ```CacheTimeToLiveSeconds```      | When the client running in LazyLoadingMode use this value to cache configuration.|   60 
 
 ### Example - increase CacheTimeToLiveSeconds to 60 seconds
 ``` c#
@@ -60,6 +72,16 @@ var clientConfiguration = new BetterConfigClientConfiguration
 };
 
 IBetterConfigClient betterConfigClient = new BetterConfigClient(clientConfiguration);
+```
+### Example - OnConfigurationChanged 
+In Auto polling mode you can subscribe an event to get notification about changes.
+``` c#
+ var betterConfigClient = new BetterConfigClient(projectSecret);
+
+betterConfigClient.OnConfigurationChanged += (s, a) =>
+{
+	//Configuration changed. Update UI!
+};
 ```
 ### Example - default value handling
 You can easily to manage default values with this technique when you use your configuration in many locations in the code.
@@ -89,6 +111,16 @@ You can customize setting with [```Newtonsoft.Json.JsonProperty```](https://www.
 [JsonProperty("My_New_Feature_Enabled")]
 public bool MyNewFeatureEnabled { get; set; }
 ```
+### Configuration with clientbuilder
+It is possible to use ```BetterConfigClientBuilder``` to build BetterConfigClient instance:
+
+``` c#
+IBetterConfigClient client = BetterConfigClientBuilder
+	.Initialize("YOUR-PROJECT-SECRET")
+    .WithLazyLoad()
+    .WithCacheTimeToLiveSeconds(120)
+    .Create();
+```
 
 ## Members
 ### Methods
@@ -101,7 +133,7 @@ public bool MyNewFeatureEnabled { get; set; }
 ### Events
 | Name        | Description           |
 | :------- | :--- |
-| ``` OnConfigurationChanged ``` | Occurs when the configuration changed (in LazyLoading mode this is invalid) |
+| ``` OnConfigurationChanged ``` | Only AutoPollOccurs when the configuration changed |
 
 
 ## Lifecycle of the client
@@ -109,7 +141,7 @@ We're recommend to use client as a singleton in your application. Today you can 
 ### Dispose
 To ensure gracefull shutdown of the client you should use ```.Dispose()``` method.
  
-## Tracing
+## Logging
 The client doesn't use any external logging framework. If you want to add your favourite logging library you have to create an adapter to ```ILogger``` and setup a logger factory in ```BetterConfigConfiguration```.
 
 ## License

@@ -4,7 +4,7 @@ namespace BetterConfig.ConfigService
 {
     internal interface IConfigService
     {
-        Task<Config> GetConfigAsync();
+        Task<ProjectConfig> GetConfigAsync();
 
         Task RefreshConfigAsync();
     }

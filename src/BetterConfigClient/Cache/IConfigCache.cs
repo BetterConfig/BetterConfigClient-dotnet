@@ -6,15 +6,15 @@
     internal interface IConfigCache
     {
         /// <summary>
-        /// Set a <see cref="Config"/> into cache
+        /// Set a <see cref="ProjectConfig"/> into cache
         /// </summary>
         /// <param name="config"></param>
-        void Set(Config config);
+        void Set(ProjectConfig config);
 
         /// <summary>
-        /// Get a <see cref="Config"/> from cache
+        /// Get a <see cref="ProjectConfig"/> from cache
         /// </summary>
         /// <returns></returns>
-        Config Get();
+        ProjectConfig Get();
     }
 }
