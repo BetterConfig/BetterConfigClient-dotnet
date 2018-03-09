@@ -1,5 +1,5 @@
 # BetterConfig client for .NET
-BetterConfig integrates with your products to allow you to create and configure apps, backends, websites and other programs using an easy to follow online User Interface (UI).
+BetterConfig is a cloud based configuration as a service. It integrates with your apps, backends, websites, and other programs, so you can configure them through this website even after they are deployed.
 https://betterconfig.com  
 
 [![Build status](https://ci.appveyor.com/api/projects/status/lbvu9ttawoioaprg?svg=true)](https://ci.appveyor.com/project/BetterConfig/betterconfigclient-dotnet) [![NuGet Version](https://buildstats.info/nuget/BetterConfigClient)](https://www.nuget.org/packages/BetterConfigClient/)
@@ -31,16 +31,17 @@ betterConfigClient.Dispose();
 ```
 
 ## Configuration
-Client supports three different modes to acquire the configuration from the betterconfig. When the client downloads the latest configuration puts into the internal cache and it serves any settings acquisition from cache. With these modes you can manage settings' lifetimes easily.
+Client supports three different caching policies to acquire the configuration from BetterConfig. When the client downloads the latest configuration, puts it into the internal cache and serves any configuration acquisition from cache. With these caching policies you can manage your configurations' lifetimes easily.
 
-### Auto polling mode (default)
-Client downloads the latest configuration and puts into a cache repeatedly. You can subscribe to an event ```OnConfigurationChanged``` to get notification about configuration changes. (use ```PollingIntervalSeconds``` parameter to manage polling interval.
+### Auto polling (default)
+Client downloads the latest configuration and puts into a cache repeatedly. Use ```PollingIntervalSeconds``` parameter to manage polling interval.
+You can subscribe to the ```OnConfigurationChanged``` event to get notification about configuration changes. 
 
-### Lazy loading mode
-Client downloads the latest configuration only when it is not present or expired (use ```CacheTimeToLiveSeconds``` to manage configuration lifetime).
+### Lazy loading
+Client downloads the latest configuration only when it is not present or expired in the cache. Use ```CacheTimeToLiveSeconds``` parameter to manage configuration lifetime.
 
-### Manual polling mode
-With this mode you always have to invoke ```.ForceRefresh()``` method to download a latest configuration into the cache. When the cache is empty (for example after client initialization) and try to acquire any value you'll get the default value!
+### Manual polling
+With this mode you always have to invoke ```.ForceRefresh()``` method to download a latest configuration into the cache. When the cache is empty (for example after client initialization) and you try to acquire any value you'll get the default value!
 
 ---
 
@@ -58,7 +59,7 @@ Configuration parameters are different in each mode:
 ### Lazy loading
 | PropertyName        | Description           | Default  |
 | --- | --- | --- | 
-| ```CacheTimeToLiveSeconds```      | When the client running in LazyLoadingMode use this value to cache configuration.|   60 |
+| ```CacheTimeToLiveSeconds```      | Use this value to manage the cache's TTL. |   60 |
 
 ### Example - increase CacheTimeToLiveSeconds to 600 seconds
 ``` c#
@@ -73,15 +74,15 @@ IBetterConfigClient betterConfigClient = new BetterConfigClient(clientConfigurat
 ### Example - OnConfigurationChanged 
 In Auto polling mode you can subscribe an event to get notification about changes.
 ``` c#
- var betterConfigClient = new BetterConfigClient(projectSecret);
+var betterConfigClient = new BetterConfigClient(projectSecret);
 
-betterConfigClient.OnConfigurationChanged += (s, a) =>
-  {
-	  //Configuration changed. Update UI!
-  }
+betterConfigClient.OnConfigurationChanged += (s, a) => 
+{
+	  // Configuration changed. Update UI!
+}
 ```
 ### Example - default value handling
-You can easily to manage default values with this technique when you use your configuration in many locations in the code.
+You can easily manage default values with this technique when you use your configuration in many locations in the code.
 ``` c#
 var betterConfigClient = new BetterConfig.BetterConfigClient("#YOUR-PROJECT-SECRET#");
 
@@ -103,7 +104,7 @@ internal sealed class MyApplicationFeatureConfig
 	public bool MyNewFeatureEnabled { get; set; }
 }
 ```
-You can customize setting with [```Newtonsoft.Json.JsonProperty```](https://www.newtonsoft.com/json/help/html/JsonPropertyName.htm):
+You can customize deserialization settings with [```Newtonsoft.Json.JsonProperty```](https://www.newtonsoft.com/json/help/html/JsonPropertyName.htm):
 ``` c#
 [JsonProperty("My_New_Feature_Enabled")]
 public bool MyNewFeatureEnabled { get; set; }
@@ -123,14 +124,14 @@ IBetterConfigClient client = BetterConfigClientBuilder
 ### Methods
 | Name        | Description           |
 | :------- | :--- |
-| ``` GetValue<T>(string key, T defaultValue) ``` | Return a value of the key |
-| ``` ForceRefresh() ``` | Fetch the latest configuration from the server. You can use this method with WebHook to ensure up to date configuration values in your application. ([see ASP.Net sample project to use webhook for cache invalidation](https://github.com/BetterConfig/BetterConfigClient-dotnet/blob/master/samples/ASP.NETCore/WebApplication/Controllers/BackdoorController.cs)) |
+| ``` GetValue<T>(string key, T defaultValue) ``` | Returns the value of the key |
+| ``` ForceRefresh() ``` | Fetches the latest configuration from the server. You can use this method with WebHooks to ensure up to date configuration values in your application. ([see ASP.Net sample project to use webhook for cache invalidation](https://github.com/BetterConfig/BetterConfigClient-dotnet/blob/master/samples/ASP.NETCore/WebApplication/Controllers/BackdoorController.cs)) |
 | ``` GetConfigurationJsonString() ``` | Return configuration as a json string |
 | ``` T GetConfiguration<T>(T defaultValue) ``` | Serialize the configuration to a passed **T** type. You can customize your **T** with Newtonsoft attributes |
 ### Events
 | Name        | Description           |
 | :------- | :--- |
-| ``` OnConfigurationChanged ``` | Only AutoPollOccurs when the configuration changed |
+| ``` OnConfigurationChanged ``` | Only with AutoPolling policy. Occurs when the configuration changed |
 
 
 ## Lifecycle of the client
