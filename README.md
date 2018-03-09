@@ -10,7 +10,7 @@ https://betterconfig.com
  Install-Package BetterConfigClient
  ```
  2. Get your Project secret from [BetterConfig.com](https://betterconfig.com) portal:
-![ProjectSecret](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme01.png  "ProjectSecret")
+![ProjectSecret](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/media/readme02.png  "ProjectSecret")
 
  3. Create a **BetterConfigClient** instance:
 ```c#
@@ -76,9 +76,9 @@ In Auto polling mode you can subscribe an event to get notification about change
  var betterConfigClient = new BetterConfigClient(projectSecret);
 
 betterConfigClient.OnConfigurationChanged += (s, a) =>
-{
-	//Configuration changed. Update UI!
-};
+  {
+	  //Configuration changed. Update UI!
+  }
 ```
 ### Example - default value handling
 You can easily to manage default values with this technique when you use your configuration in many locations in the code.
