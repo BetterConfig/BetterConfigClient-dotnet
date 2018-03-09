@@ -8,7 +8,7 @@
         /// <summary>
         /// Create a ILogger instance by name
         /// </summary>
-        /// <param name="loggerName"></param>
+        /// <param name="loggerName">Name of logger (expample: ClassName, Local unit name)</param>
         /// <returns></returns>
         ILogger GetLogger(string loggerName);
     }

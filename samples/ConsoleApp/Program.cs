@@ -7,13 +7,13 @@ namespace ConsoleApp
     {
         static void Main(string[] args)
         {            
-            const string projectSecret = "samples/01";            
+            const string projectSecret = "samples/01";
 
-            var betterConfigClient = new BetterConfigClient(new BetterConfigClientConfiguration
-            {
-                ProjectSecret = projectSecret,
-                TimeToLiveSeconds = 60                
-            });
+            var betterConfigClient = BetterConfigClientBuilder
+                .Initialize(projectSecret)
+                .WithAutoPoll()
+                .WithMaxInitWaitTimeSeconds(10)
+                .Create();
 
             // current project's setting key name is 'keyBool'            
             var myNewFeatureEnabled = betterConfigClient.GetValue("keyBool", false);
@@ -21,7 +21,8 @@ namespace ConsoleApp
             // is my new feature enabled?
             if (myNewFeatureEnabled)
             {
-                Console.WriteLine(" Here is my new feature...");
+                Console.WriteLine("Here is my new feature...");
+                Console.WriteLine(betterConfigClient.GetValue("keyString", ""));
             }
             
             // 'myKeyNotExits' setting doesn't exist in the project configuration and the client returns default value ('N/A');
@@ -32,6 +33,6 @@ namespace ConsoleApp
 
             Console.WriteLine("\n\nPress any key(s) to exit...");
             Console.ReadKey();            
-        }
+        }      
     }
 }
