@@ -1,6 +1,3 @@
-
-
-
 # BetterConfig client for .NET
 BetterConfig integrates with your products to allow you to create and configure apps, backends, websites and other programs using an easy to follow online User Interface (UI).
 https://betterconfig.com  
@@ -49,19 +46,19 @@ With this mode you always have to invoke ```.ForceRefresh()``` method to downloa
 
 Configuration parameters are different in each mode:
 ### Base configuration
-| PropertyName        | Description           | Default  
-| --- | --- | --- | --- |
-| ```ProjectSecret```      | Project secret to access your configuration  | REQUIRED
+| PropertyName        | Description           | Default  |
+| --- | --- | --- |
+| ```ProjectSecret```      | Project secret to access your configuration  | REQUIRED |
 | ```LoggerFactory``` | Factory to create an `ILogger` instance for tracing.        | `NullTrace` (no default tracing method) | 
 ### Auto polling
-| PropertyName        | Description           | Default  
-| --- | --- | --- 
+| PropertyName        | Description           | Default  |
+| --- | --- | --- |
 | ```PollIntervalSeconds ```      | Polling interval|   60 | 
-| ```MaxInitWaitTimeSeconds```      | Maximum waiting time between the client initialization and the first config acquisition in secconds.|   5 
+| ```MaxInitWaitTimeSeconds```      | Maximum waiting time between the client initialization and the first config acquisition in secconds.|   5 |
 ### Lazy loading
-| PropertyName        | Description           | Default  
+| PropertyName        | Description           | Default  |
 | --- | --- | --- | 
-| ```CacheTimeToLiveSeconds```      | When the client running in LazyLoadingMode use this value to cache configuration.|   60 
+| ```CacheTimeToLiveSeconds```      | When the client running in LazyLoadingMode use this value to cache configuration.|   60 |
 
 ### Example - increase CacheTimeToLiveSeconds to 60 seconds
 ``` c#
