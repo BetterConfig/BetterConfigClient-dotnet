@@ -60,12 +60,12 @@ Configuration parameters are different in each mode:
 | --- | --- | --- | 
 | ```CacheTimeToLiveSeconds```      | When the client running in LazyLoadingMode use this value to cache configuration.|   60 |
 
-### Example - increase CacheTimeToLiveSeconds to 60 seconds
+### Example - increase CacheTimeToLiveSeconds to 600 seconds
 ``` c#
 var clientConfiguration = new BetterConfig.Configuration.LazyLoadConfiguration
             {
                 ProjectSecret = "#YOUR-PROJECT-SECRET#",
-                CacheTimeToLiveSeconds = 60
+                CacheTimeToLiveSeconds = 600
             };
 
 IBetterConfigClient betterConfigClient = new BetterConfigClient(clientConfiguration);
