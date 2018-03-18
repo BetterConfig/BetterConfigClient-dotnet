@@ -49,13 +49,13 @@ Configuration parameters are different in each mode:
 ### Base configuration
 | PropertyName        | Description           | Default  |
 | --- | --- | --- |
-| ```ProjectSecret```      | Project secret to access your configuration  | REQUIRED |
+| ```ProjectSecret```      | Project secret to access your configuration.  | REQUIRED |
 | ```LoggerFactory``` | Factory to create an `ILogger` instance for tracing.        | `NullTrace` (no default tracing method) | 
 ### Auto polling
 | PropertyName        | Description           | Default  |
 | --- | --- | --- |
-| ```PollIntervalSeconds ```      | Polling interval|   60 | 
-| ```MaxInitWaitTimeSeconds```      | Maximum waiting time between the client initialization and the first config acquisition in secconds.|   5 |
+| ```PollIntervalSeconds ```      | Polling interval in seconds.|   60 | 
+| ```MaxInitWaitTimeSeconds```      | Maximum waiting time between the client initialization and the first config acquisition in seconds.|   5 |
 ### Lazy loading
 | PropertyName        | Description           | Default  |
 | --- | --- | --- | 
@@ -115,9 +115,9 @@ It is possible to use ```BetterConfigClientBuilder``` to build BetterConfigClien
 ``` c#
 IBetterConfigClient client = BetterConfigClientBuilder
 	.Initialize("YOUR-PROJECT-SECRET")
-    .WithLazyLoad()
-    .WithCacheTimeToLiveSeconds(120)
-    .Build();
+	.WithLazyLoad()
+	.WithCacheTimeToLiveSeconds(120)
+	.Build();
 ```
 
 ## Members
@@ -135,12 +135,12 @@ IBetterConfigClient client = BetterConfigClientBuilder
 
 
 ## Lifecycle of the client
-We're recommend to use client as a singleton in your application. Today you can do this easily with any IoC contanier ([see ASP.Net sample project](https://github.com/BetterConfig/BetterConfigClient-dotnet/blob/master/samples/ASP.NETCore/WebApplication/Startup.cs#L24)).
+We're recommend to use client as a singleton in your application. Today you can do this easily with any IoC contanier ([see ASP.Net sample project](https://github.com/BetterConfig/BetterConfigClient-dotnet/blob/master/samples/ASP.NETCore/WebApplication/Startup.cs#L25)).
 ### Dispose
-To ensure gracefull shutdown of the client you should use ```.Dispose()``` method.
+To ensure graceful shutdown of the client you should use ```.Dispose()``` method. (Client implements [IDisposable](https://msdn.microsoft.com/en-us/library/system.idisposable(v=vs.110).aspx) interface)
  
 ## Logging
-The client doesn't use any external logging framework. If you want to add your favourite logging library you have to create an adapter to ```ILogger``` and setup a logger factory in ```BetterConfigConfiguration```.
+The client doesn't use any external logging framework. If you want to add your favourite logging library you have to create an adapter to ```ILogger``` and setup a ```.LoggerFactory``` in ```BetterConfigConfiguration```.
 
 ## License
 [MIT](https://raw.githubusercontent.com/BetterConfig/BetterConfigClient-dotnet/master/LICENSE)
